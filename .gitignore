@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+build/
+.eggs/
+*.so
+
+# 前端构建产物需要提交（后端直接托管，无 Node.js 也能运行）
+!frontend/dist/
+!frontend/dist/**
+
+# 虚拟环境
+venv/
+.venv/
+env/
+
+# 便携版运行时和依赖包（体积大，Windows 专用，通过 Release 下载）
+portable/runtime/
+portable/packages/
+
+# 用户数据（含登录态、数据库、个人配置，切勿提交）
+portable/user-data/
+backend/data/
+backend/browser_data/
+
+# 环境变量配置（含密钥）
+backend/.env
+
+# Node.js
+frontend/node_modules/
+# 注意：frontend/dist/ 不忽略，后端直接托管构建产物，无 Node.js 环境也能运行
+
+# IDE / AI 工具
+.vscode/
+.idea/
+.agents/
+*.swp
+*.swo
+*~
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 日志
+*.log
+logs/
+
+# 临时文件
+*.tmp
+*.bak

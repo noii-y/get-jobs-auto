@@ -1,0 +1,181 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* 工业风设计令牌 */
+  --bg-deep: #07090d;
+  --bg-base: #0d1117;
+  --bg-surface: #121821;
+  --bg-elevated: #161d28;
+  --bg-panel: #1c2430;
+  --border-subtle: #232c3a;
+  --border-default: #2d3748;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent: #f59e0b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-deep);
+  color: var(--text-primary);
+}
+
+/* 工业风滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 0;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* 选中文字 */
+::selection {
+  background: rgba(245, 158, 11, 0.3);
+  color: var(--text-primary);
+}
+
+@layer components {
+  /* 面板容器 - 工业风卡片 */
+  .panel {
+    @apply bg-ink-850 border border-ink-700 rounded-sm;
+    box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.03), 0 4px 24px rgba(0,0,0,0.3);
+  }
+
+  /* 面板头部 - 带标签条 */
+  .panel-header {
+    @apply flex items-center justify-between px-4 py-3 border-b border-ink-700;
+  }
+
+  /* 数据标签 - 等宽字体小标签 */
+  .data-label {
+    @apply font-mono text-xs uppercase tracking-wider text-chalk-400;
+  }
+
+  /* 数据值 - 等宽字体 */
+  .data-value {
+    @apply font-mono text-sm text-chalk-100;
+  }
+
+  /* 状态指示灯 */
+  .status-dot {
+    @apply inline-block w-2 h-2 rounded-full;
+  }
+  .status-dot.run { @apply bg-signal-run animate-pulse-slow; box-shadow: 0 0 8px rgba(16,185,129,0.6); }
+  .status-dot.wait { @apply bg-signal-wait; }
+  .status-dot.done { @apply bg-signal-done; }
+  .status-dot.stop { @apply bg-signal-stop; }
+  .status-dot.fail { @apply bg-signal-fail; }
+  .status-dot.pause { @apply bg-signal-pause animate-blink; }
+
+  /* 平台标签条 */
+  .platform-bar {
+    @apply h-1 w-full;
+  }
+
+  /* 工业风按钮 */
+  .btn-industrial {
+    @apply px-4 py-2 font-mono text-xs uppercase tracking-wider font-medium transition-all duration-150 border;
+  }
+  .btn-industrial:active {
+    @apply translate-y-px;
+  }
+
+  /* 扫描线效果 */
+  .scanline {
+    position: relative;
+    overflow: hidden;
+  }
+  .scanline::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(245,158,11,0.4), transparent);
+    animation: scan 3s linear infinite;
+    pointer-events: none;
+  }
+
+  /* 网格背景纹理 */
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(45,55,72,0.3) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(45,55,72,0.3) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* 噪点纹理 */
+  .noise-bg {
+    position: relative;
+  }
+  .noise-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    opacity: 0.5;
+  }
+}
+
+/* 日志区域样式 */
+.log-container {
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.log-info { color: #94a3b8; }
+.log-success { color: #10b981; }
+.log-error { color: #ef4444; }
+.log-warning { color: #f59e0b; }
+
+/* 进度条动画 */
+.progress-bar {
+  position: relative;
+  overflow: hidden;
+}
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  animation: flow 1.5s ease-in-out infinite;
+}
+
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes flow {
+  0%, 100% { transform: translateX(-100%); }
+  50% { transform: translateX(100%); }
+}

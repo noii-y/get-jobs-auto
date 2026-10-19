@@ -33,6 +33,27 @@ async def lifespan(app: FastAPI):
     init_db()
     print("[初始化] 数据库初始化完成")
 
+    # 前端构建产物检查（缺失只警告，API/docs 仍可用）
+    frontend_dist = BASE_DIR.parent / "frontend" / "dist" / "index.html"
+    if not frontend_dist.exists():
+        print("[警告] 未找到前端构建产物 frontend/dist/index.html：管理页面不可用，")
+        print("       但 API 与文档(/docs)仍可访问。如需页面请先执行 npm run build。")
+
+    # 启动自愈：重置上次异常退出遗留的僵尸任务（只改状态，不删数据）
+    try:
+        from app.core.recovery import recover_zombies
+        stats = recover_zombies()
+        run_ids = stats.get("run_ids", [])
+        batch_ids = stats.get("batch_ids", [])
+        if run_ids or batch_ids:
+            print("[恢复] 上次异常退出，启动自动恢复：")
+            if run_ids:
+                print(f"        run 任务已置为 failed 并补 finished_at: {', '.join('#' + str(i) for i in run_ids)}")
+            if batch_ids:
+                print(f"        batch_job 任务已置为 failed 并补 finished_at: {', '.join('#' + str(i) for i in batch_ids)}")
+    except Exception as e:
+        print(f"[恢复] 自动恢复失败（已跳过，不影响启动）: {e}")
+
     # 注册平台Runner
     from app.platforms.boss.boss_runner import BossRunner
     from app.platforms.job51.job51_runner import Job51Runner

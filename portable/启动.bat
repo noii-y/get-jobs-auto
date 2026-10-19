@@ -1,68 +1,73 @@
 @echo off
+chcp 65001 >nul
 title Get Jobs Auto
 cd /d "%~dp0"
 
 echo ========================================
-echo   Get Jobs Auto ∆Ù∂Ø÷–...
+echo   Get Jobs Auto ÂêØÂä®‰∏≠...
 echo ========================================
 echo.
 
-:: 1. ≤È’“ Chrome ‰Ø¿¿∆˜
-echo [1/5] ºÏ≤‚ Chrome ‰Ø¿¿∆˜...
+:: 1. Ê£ÄÊü•Êú¨ËΩØ‰ª∂ÊòØÂê¶Â∑≤Âú®ËøêË°åÔºàÂØπÈΩê doctorÔºöÊé¢Êµã /api/healthÔºâ
+echo [1/4] Ê£ÄÊü•ÊúçÂä°Áä∂ÊÄÅ...
+"runtime\python.exe" "..\backend\doctor.py" --is-running
+if errorlevel 1 goto port_not_ours
+echo [ÊèêÁ§∫] Êú¨ËΩØ‰ª∂Â∑≤Âú®ËøêË°åÔºåÁõ¥Êé•ÊâìÂºÄÈ°µÈù¢„ÄÇ
+start http://127.0.0.1:8888
+echo.
+echo Â¶ÇÈ°µÈù¢Êó†Ê≥ïÊâìÂºÄÔºåËØ∑ÂÖàËøêË°å ÂÅúÊ≠¢.bat ÂêéÈáçËØï„ÄÇ
+pause
+exit /b 0
+
+:port_not_ours
+netstat -ano | findstr ":8888 " | findstr "LISTENING" >nul 2>&1
+if errorlevel 1 (
+    echo       Á´ØÂè£Á©∫Èó≤
+) else (
+    echo [ÈîôËØØ] 8888 Á´ØÂè£Ë¢´ÂÖ∂ÂÆÉÁ®ãÂ∫èÂç†Áî®Ôºå‰∏î‰∏çÊòØÊú¨ËΩØ‰ª∂„ÄÇ
+    echo ËØ∑ÂÖàÂÖ≥Èó≠Âç†Áî®Á®ãÂ∫èÔºåÊàñËøêË°å ÂÅúÊ≠¢.bat ÂêéÈáçËØï„ÄÇ
+    pause
+    exit /b 1
+)
+
+:: 2. Êü•Êâæ Chrome / Edge ÊµèËßàÂô®
+echo [2/4] Ê£ÄÊü•ÊµèËßàÂô®...
 set "CHROME_PATH="
 if exist "%ProgramFiles%\Google\Chrome\Application\chrome.exe" set "CHROME_PATH=%ProgramFiles%\Google\Chrome\Application\chrome.exe"
 if not defined CHROME_PATH if exist "%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe" set "CHROME_PATH=%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe"
 if not defined CHROME_PATH if exist "%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe" set "CHROME_PATH=%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"
-if not defined CHROME_PATH if exist "%USERPROFILE%\AppData\Local\Google\Chrome\Application\chrome.exe" set "CHROME_PATH=%USERPROFILE%\AppData\Local\Google\Chrome\Application\chrome.exe"
+if not defined CHROME_PATH if exist "%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe" set "CHROME_PATH=%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe"
 
 if not defined CHROME_PATH (
-    echo [¥ÌŒÛ] Œ¥ºÏ≤‚µΩ Chrome ‰Ø¿¿∆˜£°
-    echo «Îœ»∞≤◊∞ Chrome: https://www.google.com/chrome/
+    echo [ÈîôËØØ] Êú™ÊâæÂà∞ Chrome Êàñ Edge ÊµèËßàÂô®
+    echo ËØ∑ÂÆâË£Ö Chrome: https://www.google.com/chrome/
     echo.
     pause
     exit /b 1
 )
-echo       ’“µΩ Chrome: %CHROME_PATH%
+echo       Â∑≤ÊâæÂà∞ÊµèËßàÂô®: %CHROME_PATH%
 
-:: 2. ºÏ≤‚ 8888 ∂Àø⁄
-echo [2/5] ºÏ≤‚∂Àø⁄◊¥Ã¨...
-netstat -ano | findstr ":8888 " | findstr "LISTENING" >nul 2>&1
-if not errorlevel 1 (
-    echo [æØ∏Ê] 8888 ∂Àø⁄“—±ª’º”√£¨∑˛ŒÒø…ƒ‹“—‘⁄‘À––
-    start http://127.0.0.1:8888
-    echo.
-    echo »Áπ˚“≥√ÊŒﬁ∑®∑√Œ £¨«Î‘À–– Õ£÷π.bat ∫Û÷ÿ–¬∆Ù∂Ø
-    pause
-    exit /b 0
-)
-echo       ∂Àø⁄ø’œ–
-
-:: 3. ∆Ù∂Ø Chrome µ˜ ‘ƒ£ Ω
-echo [3/5] ∆Ù∂Ø Chrome µ˜ ‘ƒ£ Ω...
+:: 3. ‰ª•Ë∞ÉËØïÊ®°ÂºèÂêØÂä® ChromeÔºàv1.x Êé•ÁÆ°Ê®°ÂºèÈúÄË¶ÅÔºâ
+echo [3/4] ÂêØÂä®ÊµèËßàÂô®Ë∞ÉËØïÊ®°Âºè...
 if not exist "user-data\chrome-data" mkdir "user-data\chrome-data"
 start "" "%CHROME_PATH%" --remote-debugging-port=9222 --user-data-dir="%~dp0user-data\chrome-data" about:blank
-echo       Chrome “—∆Ù∂Ø£®∂Àø⁄ 9222£©
-
-:: 4. µ»¥˝ Chrome ∆Ù∂Ø
+echo       Ë∞ÉËØïÁ´ØÂè£ 9222 Â∑≤ÂêØÂä®
 timeout /t 3 /nobreak >nul
 
-:: 5. ∆Ù∂Ø∫Û∂À∑˛ŒÒ
-echo [4/5] ∆Ù∂Ø∫Û∂À∑˛ŒÒ...
+:: 4. ÂêØÂä®ÂêéÁ´ØÊúçÂä°Ôºàrun.py ‰ºöÂÜçÊ¨°Ëá™Ê£ÄÂπ∂Â§ÑÁêÜÁ´ØÂè£Âç†Áî®Ôºâ
+echo [4/4] ÂêØÂä®ÂêéÁ´ØÊúçÂä°...
 echo.
 echo ========================================
-echo   Get Jobs Auto “—∆Ù∂Ø
-echo   π‹¿Ì“≥√Ê: http://127.0.0.1:8888
-echo   APIŒƒµµ:  http://127.0.0.1:8888/docs
+echo   Get Jobs Auto Â∑≤ÂêØÂä®
+echo   ÁÆ°ÁêÜÈ°µÈù¢: http://127.0.0.1:8888
+echo   APIÊñáÊ°£:  http://127.0.0.1:8888/docs
 echo.
-echo   πÿ±’¥À¥∞ø⁄Ω´Õ£÷π∑˛ŒÒ
+echo   ÂÖ≥Èó≠Êú¨Á™óÂè£Âç≥ÂèØÂÅúÊ≠¢ÊúçÂä°
 echo ========================================
 echo.
 
-:: —”≥Ÿ2√Î∫Û◊‘∂Ø¥Úø™‰Ø¿¿∆˜
 start "" cmd /c "timeout /t 2 /nobreak >nul && start http://127.0.0.1:8888"
 
-:: ”√±„–Ø∞Ê Python ∆Ù∂Ø∫Û∂À
 "runtime\python.exe" "..\backend\run.py"
 
 pause
-

@@ -31,32 +31,36 @@ if not defined PYTHON_CMD (
 )
 echo [1/3] Python: %PYTHON_CMD%
 
-:: 2. 检测依赖
+:: 2. 环境自检 doctor（缺依赖时自动安装后重跑）
+echo [2/3] 环境自检 doctor...
+cd /d "%~dp0backend"
+%PYTHON_CMD% doctor.py
+if errorlevel 1 goto doctor_fix
+goto doctor_done
+
+:doctor_fix
 %PYTHON_CMD% -c "import fastapi" >nul 2>&1
-if %errorlevel% neq 0 (
-    echo [2/3] 安装依赖...
-    %PYTHON_CMD% -m pip install -r backend\requirements.txt
-) else (
-    echo [2/3] 依赖已安装
-)
+if not errorlevel 1 goto doctor_fail
+echo      检测到依赖缺失，正在自动安装...
+%PYTHON_CMD% -m pip install -r requirements.txt
+%PYTHON_CMD% doctor.py
+if errorlevel 1 goto doctor_fail
+goto doctor_done
 
-:: 3. 检测 Chrome
-echo [3/3] 检测浏览器...
-set "CHROME_PATH="
-if exist "%ProgramFiles%\Google\Chrome\Application\chrome.exe" set "CHROME_PATH=%ProgramFiles%\Google\Chrome\Application\chrome.exe"
-if not defined CHROME_PATH if exist "%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe" set "CHROME_PATH=%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe"
-if not defined CHROME_PATH if exist "%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe" set "CHROME_PATH=%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"
-if not defined CHROME_PATH if exist "%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe" set "CHROME_PATH=%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe"
-if defined CHROME_PATH (
-    echo       找到: %CHROME_PATH%
-) else (
-    echo [警告] 未找到 Chrome/Edge，请先安装
-    echo   下载地址: https://www.google.com/chrome/
-)
+:doctor_fail
+echo.
+echo [错误] 环境自检未通过，请根据上面报告修复后再启动。
+pause
+exit /b 1
 
+:doctor_done
+cd /d "%~dp0"
+
+:: 3. 启动服务（run.py 会自动识别"本软件已在运行"并打开页面，不会重复绑定端口）
+echo [3/3] 启动服务...
 echo.
 echo ========================================
-echo   Get Jobs Auto 已启动
+echo   Get Jobs Auto
 echo   管理页面: http://127.0.0.1:8888
 echo   API文档:  http://127.0.0.1:8888/docs
 echo.
@@ -64,7 +68,6 @@ echo   按 Ctrl+C 停止服务
 echo ========================================
 echo.
 
-:: 2秒后自动打开浏览器
 start "" cmd /c "timeout /t 2 /nobreak >nul && start http://127.0.0.1:8888"
 
 cd backend

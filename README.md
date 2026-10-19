@@ -208,7 +208,7 @@ A: 各平台的页面选择器集中在 `backend/app/platforms/` 目录下，修
 
 ## 致谢
 
-- [https://github.com/loks666/get_jobs) — 此系统是基于get_jobs的重做，更适合无环境配置能力的小白同学，非常感谢loks666大神给予的灵感，他和他的团队做了很多了不起的项目，欢迎各位去逛一逛他的空间
+- [loks666/get_jobs](https://github.com/loks666/get_jobs) — 此系统是基于get_jobs的重做，更适合无环境配置能力的小白同学，非常感谢loks666大神给予的灵感，他和他的团队做了很多了不起的项目，欢迎各位去逛一逛他的空间
 
 
 ## 免责声明

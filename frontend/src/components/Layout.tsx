@@ -65,7 +65,7 @@ export default function Layout({ children }: LayoutProps) {
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
             <span className="text-[11px] text-slate-500 font-medium">系统运行中</span>
           </div>
-          <p className="text-[10px] text-slate-400">v1.1.0 · 4 平台已接入</p>
+          <p className="text-[10px] text-slate-400">v1.1.1 · 4 平台已接入</p>
         </div>
       </aside>
 

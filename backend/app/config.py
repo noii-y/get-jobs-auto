@@ -25,7 +25,7 @@ class Settings(BaseSettings):
 
     # 服务配置
     app_name: str = "Get Jobs Auto - 自动化求职投递工具"
-    app_version: str = "1.1.0"
+    app_version: str = "1.1.1"
     host: str = "127.0.0.1"
     port: int = 8888
     debug: bool = False

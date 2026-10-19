@@ -230,9 +230,9 @@ class ZhilianRunner(BaseRunner):
         """确保回到主标签页"""
         try:
             if self.main_tab_id and self.main_tab_id in self.page.tab_ids:
-                self.page.to_tab(self.main_tab_id)
+                self.page.activate_tab(self.main_tab_id)
             elif len(self.page.tab_ids) > 0:
-                self.page.to_tab(self.page.tab_ids[0])
+                self.page.activate_tab(self.page.tab_ids[0])
                 self.main_tab_id = self.page.tab_ids[0]
         except:
             pass
@@ -306,11 +306,11 @@ class ZhilianRunner(BaseRunner):
 
         await self.log(f"找到 {len(apply_buttons)} 个可投递职位")
 
-        for btn in apply_buttons[:20]:
+        for btn_idx, btn in enumerate(apply_buttons[:20]):
             try:
                 # 向上找职位卡片容器（最多找5层）
                 card = btn
-                job_info = {"title": "", "company": "", "salary": "", "city": "", "job_url": "", "apply_button": btn}
+                job_info = {"title": "", "company": "", "salary": "", "city": "", "job_url": "", "apply_button": btn, "btn_index": btn_idx}
 
                 for _ in range(6):
                     try:
@@ -396,56 +396,105 @@ class ZhilianRunner(BaseRunner):
             await self.check_paused()
 
             self._ensure_main_tab()
+            time.sleep(0.5)
 
-            # 直接点击投递按钮（按钮已经在列表页）
+            # 获取投递按钮（优先用缓存的元素引用，失败则按索引重新查找）
             btn = job.get("apply_button")
-            if not btn:
-                return False, "未找到投递按钮"
+            btn_index = job.get("btn_index", 0)
 
             # 检查按钮是否可用
+            btn_valid = False
             try:
                 btn_text = btn.text
                 if "已投递" in btn_text or "已申请" in btn_text:
                     return False, "已投递过该职位"
+                btn_valid = True
             except:
                 pass
 
-            # 点击投递按钮
-            try:
-                btn.click()
-            except:
+            # 如果缓存的按钮元素失效，按索引重新查找
+            if not btn_valid:
+                try:
+                    all_btns = self.page.eles("button.collect-and-apply__btn")
+                    if not all_btns:
+                        all_btns = self.page.eles("xpath://button[contains(text(),'立即投递')]")
+                    if all_btns and btn_index < len(all_btns):
+                        btn = all_btns[btn_index]
+                        btn_valid = True
+                except:
+                    pass
+
+            if not btn_valid:
+                return False, "未找到投递按钮"
+
+            # 点击投递按钮（多种方式兜底）
+            clicked = False
+            tabs_before = len(self.page.tab_ids)
+
+            # 方式1：原生点击
+            if not clicked:
+                try:
+                    btn.click()
+                    clicked = True
+                except:
+                    pass
+
+            # 方式2：JS点击
+            if not clicked:
                 try:
                     self.page.run_js("arguments[0].click();", btn)
+                    clicked = True
                 except:
-                    return False, "投递按钮点击失败"
-            time.sleep(2)
+                    pass
 
-            # 检查是否有简历选择弹窗/确认弹窗
+            # 方式3：按索引重新查找后JS点击
+            if not clicked:
+                try:
+                    self.page.run_js(f'''
+                        const btns = document.querySelectorAll("button.collect-and-apply__btn");
+                        if (btns.length > {btn_index}) {{ btns[{btn_index}].click(); return true; }}
+                        return false;
+                    ''')
+                    clicked = True
+                except:
+                    pass
+
+            if not clicked:
+                return False, "投递按钮点击失败"
+
+            time.sleep(2.5)
+
+            # 如果打开了新标签页，关闭它并回到主标签页
             try:
-                confirm_selectors = [
-                    "xpath://button[contains(text(),'确认投递')]",
-                    "xpath://button[contains(text(),'确定')]",
-                    "xpath://button[contains(text(),'投递')]",
-                    ".btn-confirm", ".confirm-btn",
-                    "button:contains('确认')", "button:contains('确定')",
-                    ".el-button--primary",
-                ]
-                for sel in confirm_selectors:
-                    try:
-                        if sel.startswith("xpath:"):
-                            results = self.page.eles(sel)
-                            if results:
-                                results[0].click()
-                                time.sleep(1)
-                                break
-                        else:
-                            confirm_btn = self.page.ele(sel, timeout=2)
-                            if confirm_btn:
-                                confirm_btn.click()
-                                time.sleep(1)
-                                break
-                    except:
-                        continue
+                if len(self.page.tab_ids) > tabs_before:
+                    new_tab = self.page.tab_ids[-1]
+                    self.page.close_tabs(new_tab)
+                    time.sleep(0.5)
+                    self._ensure_main_tab()
+                    time.sleep(1)
+            except:
+                pass
+
+            # 检查是否有简历选择弹窗/确认弹窗（只点击可见的确认按钮）
+            try:
+                confirmed = self.page.run_js('''
+                    const btns = document.querySelectorAll('.el-button--primary, button');
+                    for (const btn of btns) {
+                        if (btn.offsetParent === null) continue;
+                        const text = (btn.innerText || '').trim();
+                        if (text === '确认投递' || text === '确定' || text === '确认' || text === '投递') {
+                            // 确保按钮在可见的弹窗中
+                            const dialog = btn.closest('.el-dialog, [class*="dialog"], [class*="modal"], [class*="popup"]');
+                            if (dialog && dialog.offsetParent !== null) {
+                                btn.click();
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                ''')
+                if confirmed:
+                    time.sleep(1.5)
             except:
                 pass
 

@@ -436,7 +436,7 @@ class BossRunner(BaseRunner):
 
                 # 切换到新标签页（如果打开了新标签）
                 if len(self.page.tab_ids) > 1:
-                    self.page.to_tab(self.page.tab_ids[-1])
+                    self.page.activate_tab(self.page.tab_ids[-1])
                     time.sleep(1.5)
 
                 # 等待详情页加载
@@ -518,7 +518,7 @@ class BossRunner(BaseRunner):
         if len(self.page.tab_ids) > 1:
             try:
                 self.page.close_tabs(self.page.tab_ids[-1])
-                self.page.to_tab(self.page.tab_ids[0])
+                self.page.activate_tab(self.page.tab_ids[0])
                 time.sleep(0.5)
             except:
                 pass

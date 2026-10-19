@@ -236,12 +236,12 @@ class Job51Runner(BaseRunner):
         try:
             if self.main_tab_id and self.main_tab_id in self.page.tab_ids:
                 try:
-                    self.page.to_tab(self.main_tab_id)
+                    self.page.activate_tab(self.main_tab_id)
                 except:
                     pass
             elif len(self.page.tab_ids) > 0:
                 try:
-                    self.page.to_tab(self.page.tab_ids[0])
+                    self.page.activate_tab(self.page.tab_ids[0])
                 except:
                     pass
                 self.main_tab_id = self.page.tab_ids[0]
@@ -380,60 +380,109 @@ class Job51Runner(BaseRunner):
 
             # 确保在主标签页（搜索页）
             self._ensure_main_tab()
+            time.sleep(0.5)
 
             job_index = job.get("index", 0)
 
-            # 用JS点击对应职位的投递按钮
+            # 第一步：检查投递按钮是否存在
             try:
-                click_result = self.page.run_js(f'''
+                btn_exists = self.page.run_js(f'''
                     const cards = document.querySelectorAll('div[class*="joblist"] div[class*="item"]');
-                    if (cards.length <= {job_index}) return {{success: false, msg: "职位索引超出范围"}};
+                    if (cards.length <= {job_index}) return false;
                     const card = cards[{job_index}];
-                    const applyBtn = card.querySelector('button.btn.apply, [class*="btn"][class*="apply"]');
-                    if (!applyBtn) return {{success: false, msg: "未找到投递按钮"}};
-                    applyBtn.click();
-                    return {{success: true, msg: "已点击投递按钮"}};
+                    const btn = card.querySelector('button.btn.apply');
+                    return !!(btn && btn.offsetParent !== null);
                 ''')
             except Exception as e:
-                return False, f"JS点击投递按钮失败: {e}"
+                return False, f"检查投递按钮失败: {e}"
 
-            if not click_result.get("success"):
-                return False, click_result.get("msg", "投递失败")
+            if not btn_exists:
+                return False, "未找到投递按钮"
+
+            # 记录点击前的标签页数量和URL
+            tabs_before = len(self.page.tab_ids)
+            url_before = self.page.url
+
+            # 第二步：点击投递按钮（页面可能导航导致JS上下文断开，这是正常的）
+            click_disconnected = False
+            try:
+                self.page.run_js(f'''
+                    const cards = document.querySelectorAll('div[class*="joblist"] div[class*="item"]');
+                    const card = cards[{job_index}];
+                    const btn = card.querySelector('button.btn.apply');
+                    if (btn) btn.click();
+                ''')
+            except Exception as e:
+                err_msg = str(e)
+                if "断开" in err_msg or "disconnect" in err_msg.lower() or "target" in err_msg.lower():
+                    click_disconnected = True
+                else:
+                    return False, f"JS点击投递按钮失败: {e}"
 
             time.sleep(2)
 
-            # 检查是否有登录弹窗（未登录时会弹出登录框）
+            # 第三步：检查是否打开了新标签页
+            try:
+                if len(self.page.tab_ids) > tabs_before:
+                    # 新标签页可能是职位详情或登录页，关闭它回到列表
+                    new_tab = self.page.tab_ids[-1]
+                    self.page.close_tabs(new_tab)
+                    time.sleep(0.5)
+                    self._ensure_main_tab()
+                    time.sleep(1)
+            except:
+                pass
+
+            # 第四步：如果页面导航走了，回到搜索页
+            try:
+                current_url = self.page.url
+                if "search" not in current_url and "51job" in current_url:
+                    self.page.back()
+                    time.sleep(2)
+            except:
+                pass
+
+            # 第五步：检查是否有登录弹窗
             try:
                 page_text = self.page.run_js('return document.body.innerText')
-                if "登录" in page_text and ("密码" in page_text or "验证码" in page_text):
+                if "登录" in page_text and ("密码" in page_text or "验证码" in page_text or "扫码" in page_text):
                     return False, "需要登录才能投递"
             except:
                 pass
 
-            # 检查是否有确认弹窗
+            # 第六步：检查是否有可见的确认弹窗并点击确认
             try:
-                confirm_result = self.page.run_js('''
-                    const confirmBtns = document.querySelectorAll('.el-button--primary, button:contains("确认"), .confirm-btn, [class*="confirm"]');
-                    for (const btn of confirmBtns) {
-                        if (btn.innerText && (btn.innerText.includes("确认") || btn.innerText.includes("确定") || btn.innerText.includes("投递"))) {
+                self.page.run_js('''
+                    // 只查找可见的确认按钮
+                    const btns = document.querySelectorAll('.el-button--primary, button');
+                    for (const btn of btns) {
+                        if (btn.offsetParent === null) continue;
+                        const text = (btn.innerText || '').trim();
+                        if ((text === '确认' || text === '确定' || text === '投递' || text === '确认投递') &&
+                            btn.closest('.el-dialog') && btn.closest('.el-dialog').style.display !== 'none') {
                             btn.click();
                             return true;
                         }
                     }
                     return false;
                 ''')
-                if confirm_result:
-                    time.sleep(1)
+                time.sleep(1.5)
             except:
                 pass
 
-            # 检查投递结果
+            # 第七步：检查投递结果
             try:
                 result_text = self.page.run_js('return document.body.innerText')
-                if any(kw in result_text for kw in ["投递成功", "申请成功", "已申请", "申请已提交", "投递成功"]):
+                if any(kw in result_text for kw in ["投递成功", "申请成功", "投递已提交", "申请已提交", "投递完成"]):
                     return True, "投递成功"
+                if "已申请" in result_text or "已投递" in result_text:
+                    return True, "已申请过该职位"
             except:
                 pass
+
+            # 如果点击时页面断开了连接但没有错误，认为点击已生效
+            if click_disconnected:
+                return True, "已点击投递按钮"
 
             return True, "已点击投递按钮"
 

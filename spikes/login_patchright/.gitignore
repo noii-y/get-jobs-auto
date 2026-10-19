@@ -1,0 +1,12 @@
+# 敏感会话数据：浏览器 profile 与 storage_state（含真实 cookie），绝不入库
+profiles/
+state/
+
+# 截图：登录后截图可能含个人信息，整体忽略；但保留登录前二维码证据 boss_login.png
+# 注意：必须用 screenshots/*（忽略目录内容），不能用 screenshots/（忽略目录本身会导致反选失效）
+screenshots/*
+!screenshots/boss_login.png
+
+# Python 缓存
+__pycache__/
+*.pyc

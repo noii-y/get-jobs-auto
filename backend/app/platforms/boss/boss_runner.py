@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
 from app.core.runner_base import BaseRunner
 from app.core.browser import browser_manager
+from app.core import observability as obs
+from app.core.observability import ReasonCode, LoginState
 from app.services.ai_service import ai_service
 from app.services.blacklist import BlacklistService
 from app.services.company_check import company_check_service
@@ -84,22 +86,26 @@ class BossRunner(BaseRunner):
         # 其他无法识别的格式，默认通过
         return True
 
-    def check_login(self) -> bool:
-        """检查Boss直聘登录状态
+    def check_login(self) -> str:
+        """检查Boss直聘登录状态（三态：logged_in / not_logged_in / unknown / risk_control）。
 
-        检测策略：
-        1. 访问职位列表页，等待加载
-        2. 检查是否有明确的未登录标志（登录弹窗、登录按钮）
-        3. 检查是否有明确的已登录标志（用户头像、消息入口、用户名）
-        4. 都检测不到时默认认为已登录（避免误判）
+        检测不到一律返回 unknown，不再默认 True。
         """
         try:
             self.page.get("https://www.zhipin.com/web/geek/jobs")
             time.sleep(3)
 
+            # 0. 风控判定（只检测不绕过）
+            try:
+                hit, _feat = obs.detect_risk_control(self.page)
+                if hit:
+                    return LoginState.RISK_CONTROL
+            except Exception:
+                pass
+
             # 1. 检查URL是否被重定向到登录页
             if "login" in self.page.url.lower():
-                return False
+                return LoginState.NOT_LOGGED_IN
 
             # 2. 检查是否有登录弹窗（未登录时访问职位页会弹出登录框）
             login_popup_selectors = [
@@ -113,7 +119,7 @@ class BossRunner(BaseRunner):
                 try:
                     elem = self.page.ele(selector, timeout=1)
                     if elem:
-                        return False
+                        return LoginState.NOT_LOGGED_IN
                 except Exception:
                     continue
 
@@ -128,7 +134,7 @@ class BossRunner(BaseRunner):
                 try:
                     elem = self.page.ele(selector, timeout=1)
                     if elem:
-                        return False
+                        return LoginState.NOT_LOGGED_IN
                 except Exception:
                     continue
 
@@ -145,25 +151,25 @@ class BossRunner(BaseRunner):
                 try:
                     elem = self.page.ele(selector, timeout=1)
                     if elem:
-                        return True
+                        return LoginState.LOGGED_IN
                 except Exception:
                     continue
 
-            # 5. 都检测不到时，检查页面是否正常加载（有职位列表说明已登录或可浏览）
+            # 5. 检查页面是否正常加载（有职位列表说明已登录或可浏览）
             try:
                 job_list = self.page.ele(".job-list-box", timeout=2)
                 if job_list:
-                    return True
+                    return LoginState.LOGGED_IN
             except Exception:
                 pass
 
-            # 6. 最后默认认为已登录（避免误判导致无法使用）
-            return True
+            # 6. 都检测不到：返回 unknown，不再默认 True
+            return LoginState.LOGIN_UNKNOWN
 
         except Exception as e:
-            await_log = f"检查登录状态失败: {e}"
-            # 检测异常时默认返回True，避免因页面结构变化导致完全无法使用
-            return True
+            # 检测异常时返回 unknown，避免误判为已登录
+            print(f"[boss] check_login 异常(返回 unknown): {e}")
+            return LoginState.LOGIN_UNKNOWN
 
     async def run(self):
         """执行Boss直聘投递主流程"""
@@ -176,16 +182,49 @@ class BossRunner(BaseRunner):
         await self.log(f"已加载黑名单: {len(self.blacklist_companies)} 家公司")
 
         try:
-            # 连接浏览器
-            await self.log("正在连接浏览器...")
-            self.page = browser_manager.connect(mode="attach")
-            await self.log("浏览器连接成功")
+            # 连接浏览器（失败记 BROWSER_CONNECT_FAIL）
+            try:
+                await self.log("正在连接浏览器...")
+                self.page = browser_manager.connect(mode="attach")
+                await self.log("浏览器连接成功")
+            except Exception as e:
+                await self.error(f"浏览器连接失败: {e}")
+                await self.record_failure(
+                    {"title": "(浏览器连接失败)", "company": "boss"},
+                    ReasonCode.BROWSER_CONNECT_FAIL, stage=obs.ErrorStage.CONNECT,
+                    exc=e, message=f"浏览器连接失败: {e}", screenshot=True)
+                self.fail_reason = ReasonCode.BROWSER_CONNECT_FAIL
+                self.error_message = str(e)[:500]
+                await self.status("failed", {"reason_code": ReasonCode.BROWSER_CONNECT_FAIL,
+                                             "error": str(e)})
+                return
 
-            # 检查登录
+            # 检查登录（三态）
             await self.log("检查登录状态...")
-            if not self.check_login():
+            login_state = self.check_login()
+            if login_state == LoginState.NOT_LOGGED_IN:
                 await self.error("未检测到Boss直聘登录状态！请先在浏览器中登录Boss直聘后再运行。")
-                await self.status("failed", {"reason": "not_logged_in"})
+                self.fail_reason = ReasonCode.NOT_LOGGED_IN
+                await self.status("failed", {"reason_code": ReasonCode.NOT_LOGGED_IN,
+                                             "reason": "not_logged_in"})
+                return
+            elif login_state == LoginState.RISK_CONTROL:
+                await self.record_failure(
+                    {"title": "(风控/安全验证页)", "company": "boss"},
+                    ReasonCode.RISK_CONTROL, stage=obs.ErrorStage.CHECK_LOGIN, screenshot=True)
+                await self.error("检测到风控/安全验证页，已停止运行等待人工处理（只检测不绕过）。")
+                self.fail_reason = ReasonCode.RISK_CONTROL
+                await self.status("failed", {"reason_code": ReasonCode.RISK_CONTROL,
+                                             "reason": "risk_control"})
+                return
+            elif login_state == LoginState.LOGIN_UNKNOWN:
+                await self.record_failure(
+                    {"title": "(登录态未知)", "company": "boss"},
+                    ReasonCode.LOGIN_UNKNOWN, stage=obs.ErrorStage.CHECK_LOGIN, screenshot=True)
+                await self.error("登录状态检测不到，已停止运行，请确认登录状态后重试。")
+                self.fail_reason = ReasonCode.LOGIN_UNKNOWN
+                await self.status("failed", {"reason_code": ReasonCode.LOGIN_UNKNOWN,
+                                             "reason": "login_unknown"})
                 return
 
             await self.log("登录状态正常")
@@ -215,7 +254,12 @@ class BossRunner(BaseRunner):
                     jobs = await self._get_job_list(page_url)
                     if not jobs:
                         await self.log(f"第 {page_num} 页没有找到职位，结束")
+                        await self.record_list_empty(page_url, stage=obs.ErrorStage.LIST)
                         break
+
+                    # 纯观测：记录列表页实际抓到的卡片数（不改流程）
+                    self.cards_found = max(self.cards_found, len(jobs))
+                    self._persist_run_fields(cards_found=self.cards_found)
 
                     await self.log(f"第 {page_num} 页找到 {len(jobs)} 个职位")
                     await self.update_status(action="投递中", page=page_num, total=len(jobs))
@@ -284,8 +328,11 @@ class BossRunner(BaseRunner):
                             msg = str(e)
                             await self.log(f"✗ 投递异常: {job['company']} - {job['title']} | {msg}")
 
-                        # 保存结果并推送事件
-                        await self.result(job, "success" if success else "failed", msg)
+                        # 保存结果并推送事件（若 _apply_job 已通过 record_failure 落库则跳过，避免重复）
+                        if self._failure_already_recorded:
+                            self._failure_already_recorded = False
+                        else:
+                            await self.result(job, "success" if success else "failed", msg)
 
                         # 随机延时，避免风控
                         self.random_sleep(2.0, 5.0)
@@ -300,6 +347,10 @@ class BossRunner(BaseRunner):
 
         except Exception as e:
             await self.error(f"任务执行异常: {str(e)}")
+            await self.record_failure(
+                {"title": "(任务执行异常)", "company": "boss"},
+                ReasonCode.UNKNOWN, stage=obs.ErrorStage.UNKNOWN,
+                exc=e, message=f"任务执行异常: {str(e)}", screenshot=True)
             await self.status("failed", {"error": str(e)})
         finally:
             # 不关闭浏览器（接管模式）
@@ -330,6 +381,7 @@ class BossRunner(BaseRunner):
         time.sleep(1)
 
         jobs = []
+        self._list_failure_recorded = False
         # Boss直聘2026新版：职位卡片类名是 job-card-wrap
         selectors = [
             ".job-card-wrap",
@@ -341,6 +393,11 @@ class BossRunner(BaseRunner):
 
         if not cards:
             await self.log("未找到职位列表元素，页面结构可能已变化")
+            await self.record_failure(
+                {"title": "(卡片选择器未命中)", "company": "boss", "job_url": obs.safe_page_url(self.page)},
+                ReasonCode.CARD_SELECTOR_FAIL, stage=obs.ErrorStage.LIST,
+                selector=";".join(selectors), screenshot=True)
+            self._list_failure_recorded = True
             return []
 
         await self.log(f"找到 {len(cards)} 个职位卡片")
@@ -482,6 +539,11 @@ class BossRunner(BaseRunner):
                             pass
                         continue
                     else:
+                        await self.record_failure(
+                            job, ReasonCode.CHAT_BTN_NOT_FOUND, stage=obs.ErrorStage.OPEN_DETAIL,
+                            selector="xpath://a[contains(text(),'立即沟通')];"
+                                          ".btn-startchat;a.btn-startchat;[class*='startchat']",
+                            message="未找到立即沟通按钮", screenshot=True)
                         self._close_detail_tabs()
                         return False, "未找到立即沟通按钮"
 
@@ -497,6 +559,11 @@ class BossRunner(BaseRunner):
                 self._close_detail_tabs()
                 return False, f"异常: {str(e)}"
 
+        await self.record_failure(
+            job, ReasonCode.CHAT_BTN_NOT_FOUND, stage=obs.ErrorStage.OPEN_DETAIL,
+            selector="xpath://a[contains(text(),'立即沟通')];"
+                          ".btn-startchat;a.btn-startchat;[class*='startchat']",
+            message="未找到立即沟通按钮", screenshot=True)
         self._close_detail_tabs()
         return False, "未找到立即沟通按钮"
 
@@ -534,6 +601,9 @@ class BossRunner(BaseRunner):
                 try:
                     self.page.run_js("arguments[0].click();", chat_btn)
                 except:
+                    await self.record_failure(
+                        job, ReasonCode.BTN_CLICK_FAIL, stage=obs.ErrorStage.CLICK_CHAT,
+                        selector=".btn-startchat", message="沟通按钮点击失败", screenshot=True)
                     return False, "沟通按钮点击失败"
             time.sleep(2)
 
@@ -622,6 +692,9 @@ class BossRunner(BaseRunner):
             return True, "打招呼成功"
 
         except Exception as e:
+            await self.record_failure(
+                job, ReasonCode.BTN_CLICK_FAIL, stage=obs.ErrorStage.SEND,
+                exc=e, message=f"发送异常: {str(e)}", screenshot=True)
             self._close_detail_tabs()
             return False, f"发送异常: {str(e)}"
 

@@ -17,7 +17,7 @@ from app.config import settings
 from app.database import init_db
 from app.core.scheduler import scheduler
 from app.core.schedule_manager import schedule_manager
-from app.api import runs, config, results, schedules, company_check, batch
+from app.api import runs, config, results, schedules, company_check, batch, screenshots
 
 
 @asynccontextmanager
@@ -133,6 +133,7 @@ app.include_router(results.router)
 app.include_router(schedules.router)
 app.include_router(company_check.router)
 app.include_router(batch.router)
+app.include_router(screenshots.router)
 
 
 @app.get("/api/health", summary="健康检查")

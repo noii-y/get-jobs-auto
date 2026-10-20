@@ -86,6 +86,10 @@ async def get_run(run_id: int, db: Session = Depends(get_db)):
         "success_count": run.success_count,
         "failed_count": run.failed_count,
         "skipped_count": run.skipped_count,
+        "fail_reason": getattr(run, "fail_reason", "") or "",
+        "error_message": getattr(run, "error_message", "") or "",
+        "cards_found": getattr(run, "cards_found", 0) or 0,
+        "log_path": getattr(run, "log_path", "") or "",
         "started_at": run.started_at,
         "finished_at": run.finished_at,
         "is_running": scheduler.is_running(run_id)
@@ -110,6 +114,9 @@ async def list_runs(platform: Optional[str] = None,
             "total_count": r.total_count,
             "success_count": r.success_count,
             "failed_count": r.failed_count,
+            "fail_reason": getattr(r, "fail_reason", "") or "",
+            "error_message": getattr(r, "error_message", "") or "",
+            "cards_found": getattr(r, "cards_found", 0) or 0,
             "started_at": r.started_at,
             "finished_at": r.finished_at
         }

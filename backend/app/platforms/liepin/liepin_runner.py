@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, List
 from app.core.runner_base import BaseRunner
 from app.core.browser import browser_manager
+from app.core import observability as obs
+from app.core.observability import ReasonCode, LoginState
 from app.services.ai_service import ai_service
 from app.services.blacklist import BlacklistService
 from app.services.company_check import company_check_service
@@ -50,15 +52,23 @@ class LiepinRunner(BaseRunner):
         finally:
             db.close()
 
-    def check_login(self) -> bool:
-        """检查猎聘登录状态"""
+    def check_login(self) -> str:
+        """检查猎聘登录状态（三态，检测不到返回 unknown，不再默认 True）"""
         try:
             self.page.get("https://www.liepin.com/zhaopin/")
             time.sleep(3)
 
+            # 风控判定（只检测不绕过）
+            try:
+                hit, _feat = obs.detect_risk_control(self.page)
+                if hit:
+                    return LoginState.RISK_CONTROL
+            except Exception:
+                pass
+
             # 检查URL是否被重定向到登录页
             if "login" in self.page.url.lower() or "passport" in self.page.url.lower():
-                return False
+                return LoginState.NOT_LOGGED_IN
 
             # 检查是否有登录弹窗/登录按钮
             login_selectors = [
@@ -70,7 +80,7 @@ class LiepinRunner(BaseRunner):
                 try:
                     elem = self.page.ele(sel, timeout=1)
                     if elem and "登录" in elem.text:
-                        return False
+                        return LoginState.NOT_LOGGED_IN
                 except:
                     continue
 
@@ -85,7 +95,7 @@ class LiepinRunner(BaseRunner):
                 try:
                     elem = self.page.ele(sel, timeout=1)
                     if elem:
-                        return True
+                        return LoginState.LOGGED_IN
                 except:
                     continue
 
@@ -93,15 +103,15 @@ class LiepinRunner(BaseRunner):
             try:
                 job_list = self.page.ele("[class*='job-list']", timeout=2)
                 if job_list:
-                    return True
+                    return LoginState.LOGGED_IN
             except:
                 pass
 
-            # 都检测不到时默认认为已登录（避免误判）
-            return True
+            # 都检测不到时返回 unknown，不再默认 True
+            return LoginState.LOGIN_UNKNOWN
         except Exception as e:
-            await_log = f"检查登录状态失败: {e}"
-            return True
+            print(f"[liepin] check_login 异常(返回 unknown): {e}")
+            return LoginState.LOGIN_UNKNOWN
 
     async def run(self):
         """执行猎聘投递主流程"""
@@ -113,15 +123,49 @@ class LiepinRunner(BaseRunner):
         await self.log(f"已加载黑名单: {len(self.blacklist_companies)} 家公司")
 
         try:
-            await self.log("正在连接浏览器...")
-            self.page = browser_manager.connect(mode="attach")
-            await self.log("浏览器连接成功")
+            # 连接浏览器（失败记 BROWSER_CONNECT_FAIL）
+            try:
+                await self.log("正在连接浏览器...")
+                self.page = browser_manager.connect(mode="attach")
+                await self.log("浏览器连接成功")
+            except Exception as e:
+                await self.error(f"浏览器连接失败: {e}")
+                await self.record_failure(
+                    {"title": "(浏览器连接失败)", "company": "liepin"},
+                    ReasonCode.BROWSER_CONNECT_FAIL, stage=obs.ErrorStage.CONNECT,
+                    exc=e, message=f"浏览器连接失败: {e}", screenshot=True)
+                self.fail_reason = ReasonCode.BROWSER_CONNECT_FAIL
+                self.error_message = str(e)[:500]
+                await self.status("failed", {"reason_code": ReasonCode.BROWSER_CONNECT_FAIL,
+                                             "error": str(e)})
+                return
 
-            # 检查登录
+            # 检查登录（三态）
             await self.log("检查登录状态...")
-            if not self.check_login():
+            login_state = self.check_login()
+            if login_state == LoginState.NOT_LOGGED_IN:
                 await self.error("未检测到猎聘登录状态！请先在浏览器中登录猎聘后再运行。")
-                await self.status("failed", {"reason": "not_logged_in"})
+                self.fail_reason = ReasonCode.NOT_LOGGED_IN
+                await self.status("failed", {"reason_code": ReasonCode.NOT_LOGGED_IN,
+                                             "reason": "not_logged_in"})
+                return
+            elif login_state == LoginState.RISK_CONTROL:
+                await self.record_failure(
+                    {"title": "(风控/安全验证页)", "company": "liepin"},
+                    ReasonCode.RISK_CONTROL, stage=obs.ErrorStage.CHECK_LOGIN, screenshot=True)
+                await self.error("检测到风控/安全验证页，已停止运行等待人工处理（只检测不绕过）。")
+                self.fail_reason = ReasonCode.RISK_CONTROL
+                await self.status("failed", {"reason_code": ReasonCode.RISK_CONTROL,
+                                             "reason": "risk_control"})
+                return
+            elif login_state == LoginState.LOGIN_UNKNOWN:
+                await self.record_failure(
+                    {"title": "(登录态未知)", "company": "liepin"},
+                    ReasonCode.LOGIN_UNKNOWN, stage=obs.ErrorStage.CHECK_LOGIN, screenshot=True)
+                await self.error("登录状态检测不到，已停止运行，请确认登录状态后重试。")
+                self.fail_reason = ReasonCode.LOGIN_UNKNOWN
+                await self.status("failed", {"reason_code": ReasonCode.LOGIN_UNKNOWN,
+                                             "reason": "login_unknown"})
                 return
             await self.log("登录状态正常")
 
@@ -146,7 +190,12 @@ class LiepinRunner(BaseRunner):
                     jobs = await self._get_job_list(page_url)
                     if not jobs:
                         await self.log(f"第 {page_num} 页没有找到职位，结束")
+                        await self.record_list_empty(page_url, stage=obs.ErrorStage.LIST)
                         break
+
+                    # 纯观测：记录列表页实际抓到的卡片数（不改流程）
+                    self.cards_found = max(self.cards_found, len(jobs))
+                    self._persist_run_fields(cards_found=self.cards_found)
 
                     await self.log(f"第 {page_num} 页找到 {len(jobs)} 个职位")
                     await self.update_status(action="沟通中", page=page_num, total=len(jobs))
@@ -227,6 +276,10 @@ class LiepinRunner(BaseRunner):
 
         except Exception as e:
             await self.error(f"任务执行异常: {str(e)}")
+            await self.record_failure(
+                {"title": "(任务执行异常)", "company": "liepin"},
+                ReasonCode.UNKNOWN, stage=obs.ErrorStage.UNKNOWN,
+                exc=e, message=f"任务执行异常: {str(e)}", screenshot=True)
             await self.status("failed", {"error": str(e)})
         finally:
             pass

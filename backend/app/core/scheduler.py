@@ -8,6 +8,7 @@ from app.database import SessionLocal
 from app.models import Run, Task
 from app.core.runner_base import BaseRunner
 from app.core.events import event_manager
+from app.core.observability import ReasonCode
 from app.schemas import RunEvent
 
 
@@ -90,6 +91,14 @@ class TaskScheduler:
                     run.failed_count = stats["failed"]
                     run.skipped_count = stats["skipped"]
                     run.finished_at = datetime.now()
+                    # 阶段A：把 runner 的可观测字段落库
+                    if getattr(runner, "fail_reason", ""):
+                        run.fail_reason = runner.fail_reason
+                    if getattr(runner, "error_message", ""):
+                        run.error_message = runner.error_message
+                    run.cards_found = getattr(runner, "cards_found", 0) or 0
+                    if getattr(runner, "log_path", ""):
+                        run.log_path = runner.log_path
                     db.commit()
             finally:
                 db.close()
@@ -99,8 +108,22 @@ class TaskScheduler:
             try:
                 run = db.query(Run).filter(Run.id == run_id).first()
                 if run:
+                    # 外层未捕获异常：兜底失败原因
+                    err_str = str(e) or ""
+                    if not getattr(runner, "fail_reason", ""):
+                        if any(k in err_str for k in ("连接", "connect", "Chrome", "9222",
+                                                       "端口", "refused", "Connection")):
+                            runner.fail_reason = ReasonCode.BROWSER_CONNECT_FAIL
+                        else:
+                            runner.fail_reason = ReasonCode.UNKNOWN
+                    runner.error_message = (getattr(runner, "error_message", "") or err_str)[:500]
                     run.status = "failed"
                     run.finished_at = datetime.now()
+                    run.fail_reason = runner.fail_reason
+                    run.error_message = runner.error_message
+                    run.cards_found = getattr(runner, "cards_found", 0) or 0
+                    if getattr(runner, "log_path", ""):
+                        run.log_path = runner.log_path
                     db.commit()
             finally:
                 db.close()

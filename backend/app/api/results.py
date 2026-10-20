@@ -52,6 +52,12 @@ async def list_results(run_id: Optional[int] = None,
                 "status": r.status,
                 "message": r.message,
                 "ai_greeting": r.ai_greeting,
+                "reason_code": getattr(r, "reason_code", "") or "",
+                "error_stage": getattr(r, "error_stage", "") or "",
+                "error_url": getattr(r, "error_url", "") or "",
+                "screenshot_path": getattr(r, "screenshot_path", "") or "",
+                "selector_used": getattr(r, "selector_used", "") or "",
+                "traceback_short": getattr(r, "traceback_short", "") or "",
                 "created_at": r.created_at
             }
             for r in results

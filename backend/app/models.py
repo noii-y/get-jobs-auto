@@ -56,6 +56,10 @@ class Run(Base):
     started_at = Column(DateTime, default=datetime.now)
     finished_at = Column(DateTime, nullable=True)
     log_path = Column(String(500), default="")
+    # 阶段A 可观测：run 级失败原因与统计（均可空，带默认值）
+    fail_reason = Column(String(100), nullable=True, default="")  # run 级失败原因码
+    error_message = Column(String(500), nullable=True, default="")  # run 级异常摘要
+    cards_found = Column(Integer, nullable=True, default=0)  # 列表页实际抓到的卡片数
 
 
 class JobResult(Base):
@@ -75,6 +79,13 @@ class JobResult(Base):
     message = Column(Text, default="")
     ai_greeting = Column(Text, default="")
     created_at = Column(DateTime, default=datetime.now)
+    # 阶段A 可观测：单条投递失败的结构化原因（均可空，带默认值）
+    reason_code = Column(String(50), nullable=True, default="")  # 机器可读失败码
+    error_stage = Column(String(30), nullable=True, default="")  # 失败阶段
+    error_url = Column(String(500), nullable=True, default="")  # 失败时页面 URL
+    screenshot_path = Column(String(500), nullable=True, default="")  # 失败截图相对路径
+    selector_used = Column(String(200), nullable=True, default="")  # 最后命中/未命中的选择器
+    traceback_short = Column(String(1000), nullable=True, default="")  # 截断堆栈
 
 
 class Blacklist(Base):

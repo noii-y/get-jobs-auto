@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="mo-dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据看板 · Get Jobs Auto</title>
+<link rel="stylesheet" href="vendor/daisyui.css">
+<link rel="stylesheet" href="vendor/utilities-patch.css">
+<link rel="stylesheet" href="tokens.css">
+<style>
+  /* ===== 基础：全部颜色走 daisyUI 主题变量 ===== */
+  html, body {
+    background: var(--color-base-100);
+    color: var(--color-base-content);
+    font-size: 14px;
+    margin: 0;
+  }
+  body { min-height: 100vh; }
+  *:focus, *:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  /* ===== 整体布局 ===== */
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--color-base-200);
+    border-right: 1px solid var(--color-base-300);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px 12px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; padding: 4px 8px; }
+  .brand-mark {
+    width: 36px; height: 36px; flex-shrink: 0;
+    border-radius: var(--radius-box);
+    background: var(--color-primary);
+    color: var(--color-primary-content);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 18px;
+  }
+  .brand-name { font-size: 15px; font-weight: 600; line-height: 1.3; }
+  .brand-sub { font-size: 12px; opacity: 0.6; line-height: 1.3; }
+
+  .side-nav { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+  .side-nav a {
+    display: flex; align-items: center; gap: 10px;
+    min-height: 40px; padding: 0 12px;
+    border-radius: var(--radius-box);
+    color: var(--color-base-content);
+    text-decoration: none;
+    font-size: 14px;
+  }
+  .side-nav a svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .side-nav a:hover { background: var(--color-base-300); }
+  .side-nav a.active {
+    background: var(--color-primary);
+    color: var(--color-primary-content);
+    font-weight: 600;
+  }
+
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+  /* ===== 顶栏 ===== */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px 16px;
+    padding: 12px 24px;
+    background: var(--color-base-200);
+    border-bottom: 1px solid var(--color-base-300);
+  }
+  .topbar-title h1 { font-size: 20px; font-weight: 700; margin: 0; line-height: 1.3; }
+  .topbar-title .sub { font-size: 12px; opacity: 0.6; margin-top: 2px; }
+  .topbar-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+  /* 时间范围分段控件 */
+  .seg { display: inline-flex; background: var(--color-base-300); border-radius: var(--radius-field); padding: 2px; gap: 2px; }
+  .seg-btn {
+    height: 32px; padding: 0 12px;
+    border: none; border-radius: var(--radius-field);
+    background: transparent; color: var(--color-base-content);
+    font-size: 13px; cursor: pointer;
+  }
+  .seg-btn:hover { background: var(--color-base-200); }
+  .seg-btn.seg-active { background: var(--color-primary); color: var(--color-primary-content); font-weight: 600; }
+  .updated { font-size: 12px; opacity: 0.6; white-space: nowrap; }
+
+  /* 通知铃铛 */
+  .bell-wrap { position: relative; }
+  .bell-btn {
+    width: 32px; height: 32px; padding: 0;
+    border: none; border-radius: var(--radius-field);
+    background: transparent; color: var(--color-base-content);
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .bell-btn:hover { background: var(--color-base-300); }
+  .bell-btn svg { width: 18px; height: 18px; }
+  .bell-count {
+    position: absolute; top: -4px; right: -4px;
+    min-width: 16px; height: 16px; padding: 0 4px;
+    border-radius: 999px;
+    background: var(--color-primary); color: var(--color-primary-content);
+    font-size: 10px; line-height: 16px; text-align: center;
+  }
+
+  /* ===== 主内容 ===== */
+  .content { padding: 16px 24px 24px; display: flex; flex-direction: column; gap: 16px; }
+  .card {
+    background: var(--color-base-200);
+    border: 1px solid var(--color-base-300);
+    border-radius: var(--radius-box);
+    padding: 16px;
+  }
+  .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+  .card-title { font-size: 14px; font-weight: 600; margin: 0; }
+  .card-sub { font-size: 12px; opacity: 0.6; }
+
+  /* KPI */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .kpi-label { font-size: 13px; opacity: 0.7; }
+  .kpi-value { font-size: 26px; font-weight: 700; line-height: 1.2; margin-top: 8px; font-variant-numeric: tabular-nums; }
+  .kpi-change { font-size: 12px; margin-top: 4px; display: flex; gap: 6px; align-items: baseline; }
+  .kpi-change .muted { opacity: 0.6; }
+  .kpi-note { font-size: 12px; opacity: 0.6; margin-top: 8px; line-height: 1.4; }
+
+  /* 图表区 */
+  .chart-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+  .chart-side { display: flex; flex-direction: column; gap: 16px; }
+  .chart-box { width: 100%; }
+  .axis { font-size: 12px; fill: var(--color-base-content); opacity: 0.6; }
+
+  /* 多段状态进度条 */
+  .segbar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--color-base-300); }
+  .segbar > div { height: 100%; }
+  .legend { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+  .legend-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .legend-chip { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .legend-row .num { margin-left: auto; font-variant-numeric: tabular-nums; }
+
+  /* 平台占比条形 */
+  .pbar-row { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 10px; }
+  .pbar-name { width: 64px; flex-shrink: 0; }
+  .pbar-track { flex: 1; height: 8px; border-radius: 999px; background: var(--color-base-300); overflow: hidden; }
+  .pbar-fill { height: 100%; border-radius: 999px; }
+  .pbar-val { width: 44px; text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* 表格 */
+  .table-wrap { overflow-x: auto; }
+  .dash-table { width: 100%; min-width: 620px; border-collapse: collapse; font-size: 13px; }
+  .dash-table th {
+    text-align: left; font-weight: 600; font-size: 12px; opacity: 0.6;
+    padding: 8px 12px; border-bottom: 1px solid var(--color-base-300); white-space: nowrap;
+  }
+  .dash-table td { padding: 10px 12px; border-bottom: 1px solid var(--color-base-300); }
+  .dash-table tbody tr:last-child td { border-bottom: none; }
+  .dash-table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .dash-table th.num { text-align: right; }
+  .dash-table .time { white-space: nowrap; opacity: 0.8; }
+  .dash-table td.status-cell { white-space: nowrap; }
+
+  /* 中性灰软徽章覆盖：daisyUI 默认取纯色文字（26% 深灰），深底上不可读，
+     改用 neutral-content 亮灰文字 + 低透亮灰背景，保持「中性灰」语义且对比度达标 */
+  .badge-soft.badge-neutral {
+    background: color-mix(in oklab, var(--color-neutral-content) 16%, transparent);
+    color: var(--color-neutral-content);
+  }
+
+  /* 登录状态小卡 */
+  .login-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+  .login-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .login-item .platform { font-weight: 600; }
+  .login-item .state { opacity: 0.7; font-size: 12px; }
+
+  /* 弹层 */
+  #notifPop {
+    width: 320px;
+    background: var(--color-base-200);
+    color: var(--color-base-content);
+    border: 1px solid var(--color-base-300);
+    border-radius: var(--radius-box);
+    padding: 16px;
+    margin: 0;
+  }
+  #notifPop h2 { font-size: 14px; font-weight: 600; margin: 0 0 8px; }
+  .notif-item { padding: 8px 0; border-bottom: 1px solid var(--color-base-300); font-size: 13px; }
+  .notif-item:last-child { border-bottom: none; }
+  .notif-item .t { font-size: 12px; opacity: 0.6; margin-top: 2px; }
+
+  dialog.modal { background: transparent; border: none; padding: 0; }
+  dialog.modal::backdrop { background: rgba(0,0,0,0.5); }
+  .modal-box {
+    background: var(--color-base-200); color: var(--color-base-content);
+    border: 1px solid var(--color-base-300); border-radius: var(--radius-box);
+    padding: 20px; width: calc(100vw - 32px); max-width: 420px;
+  }
+  .form-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 13px; }
+  .form-row input[type="date"] {
+    height: 32px; padding: 0 8px; flex: 1;
+    background: var(--color-base-100); color: var(--color-base-content);
+    border: 1px solid var(--color-base-300); border-radius: var(--radius-field);
+    font-size: 13px;
+  }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+
+  .btn { height: 32px; padding: 0 12px; font-size: 13px; border-radius: var(--radius-field); border: 1px solid transparent; cursor: pointer; }
+  .btn-soft { background: var(--color-base-300); color: var(--color-base-content); }
+  .btn-soft:hover { filter: brightness(1.1); }
+  .btn-primary { background: var(--color-primary); color: var(--color-primary-content); font-weight: 600; }
+  .btn-xs { height: 28px; padding: 0 8px; font-size: 12px; }
+
+  /* 刷新中 loading（功能性，≤200ms 级） */
+  .is-loading { position: relative; pointer-events: none; }
+  .is-loading::after {
+    content: ""; position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: color-mix(in oklch, var(--color-base-200) 80%, transparent);
+    border-radius: var(--radius-box);
+  }
+
+  /* ===== 窄屏 ≤900px ===== */
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar {
+      width: 100%; flex-direction: column; gap: 8px;
+      border-right: none; border-bottom: 1px solid var(--color-base-300);
+      padding: 12px 16px;
+    }
+    .side-nav { flex-direction: row; flex-wrap: wrap; }
+    .side-nav a { min-height: 44px; padding: 0 12px; }
+    .content { padding: 16px 14px; gap: 16px; }
+    .topbar { padding: 12px 14px; }
+    .kpi-grid { grid-template-columns: 1fr; }
+    .chart-grid { grid-template-columns: 1fr; }
+    .seg-btn { min-height: 44px; }
+    .bell-btn { width: 44px; height: 44px; }
+    .btn { height: 44px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ===== 侧栏 ===== -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">Get Jobs Auto</div>
+        <div class="brand-sub">自动化求职</div>
+      </div>
+    </div>
+    <ul class="side-nav">
+      <li><a href="#" class="active" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v16.5A1.5 1.5 0 0 0 5.25 21h15M7.5 14.25l3-3 2.5 2.5 4.5-4.5M16.5 9h3v3"/></svg>
+        数据看板</a></li>
+      <li><a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 0 0 .75-1.661V11.1c0-.876-.698-1.583-1.571-1.622A48.46 48.46 0 0 0 12 9.75c-2.537 0-5.016.18-7.429.528C3.698 9.517 3 10.224 3 11.1v1.389c0 .613.434 1.141 1.087 1.294m14.738 0c.48.04.962.082 1.444.14M12 9.75V6.5a3 3 0 0 1 6 0V9.75m-12.75-.347A48.622 48.622 0 0 1 12 9.75m0 0a48.622 48.622 0 0 1 6.75.347M12 21.75v-3.75"/></svg>
+        职位池</a></li>
+      <li><a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.27 3.494a.5.5 0 0 1 .633-.633L15 5.25m-9 6.75 7.5 7.5m-7.5-7.5 2.25.75m5.25 8.25 8.39-23.645a.5.5 0 0 0-.634-.634L14.25 15M6 12l.75 2.25"/></svg>
+        投递任务</a></li>
+      <li><a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-5l-5 4v-4z"/></svg>
+        消息沟通</a></li>
+      <li><a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
+        登录中心</a></li>
+      <li><a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10.34 3.94a1.125 1.125 0 0 1 1.09-.74h1.14a1.125 1.125 0 0 1 1.09.74l.24.9a1.125 1.125 0 0 0 .8.79l.92.27a1.125 1.125 0 0 1 .69.69l.27.92a1.125 1.125 0 0 0 .79.8l.9.24a1.125 1.125 0 0 1 .74 1.09v1.14c0 .5-.34.94-.82 1.09l-.9.24a1.125 1.125 0 0 0-.8.79l-.27.92a1.125 1.125 0 0 1-.69.69l-.92.27a1.125 1.125 0 0 0-.79.8l-.24.9a1.125 1.125 0 0 1-1.09.74h-1.14a1.125 1.125 0 0 1-1.09-.74l-.24-.9a1.125 1.125 0 0 0-.8-.79l-.92-.27a1.125 1.125 0 0 1-.69-.69l-.27-.92a1.125 1.125 0 0 0-.79-.8l-.9-.24a1.125 1.125 0 0 1-.74-1.09v-1.14c0-.5.34-.94.82-1.09l.9-.24a1.125 1.125 0 0 0 .8-.79l.27-.92a1.125 1.125 0 0 1 .69-.69l.92-.27a1.125 1.125 0 0 0 .79-.8l.24-.9ZM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg>
+        设置</a></li>
+    </ul>
+  </aside>
+
+  <div class="main">
+    <!-- ===== 顶栏 ===== -->
+    <header class="topbar">
+      <div class="topbar-title">
+        <h1>数据看板</h1>
+        <div class="sub">Get Jobs Auto · 自动化求职（示例数据）</div>
+      </div>
+      <div class="topbar-right">
+        <div class="seg" role="group" aria-label="时间范围">
+          <button class="seg-btn" data-range="today">今天</button>
+          <button class="seg-btn seg-active" data-range="7d" aria-pressed="true">7 天</button>
+          <button class="seg-btn" data-range="30d" aria-pressed="false">30 天</button>
+          <button class="seg-btn" data-range="custom" aria-haspopup="dialog" aria-controls="rangeDialog">自定义</button>
+        </div>
+        <span class="updated">更新于 10:32</span>
+        <div class="bell-wrap">
+          <button id="bellBtn" class="bell-btn" popovertarget="notifPop" aria-haspopup="dialog"
+                  aria-expanded="false" aria-controls="notifPop" aria-label="通知，3 条未读">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>
+            <span class="bell-count">3</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="content">
+
+      <!-- ===== KPI 区 ===== -->
+      <section class="kpi-grid" aria-label="关键指标">
+        <div class="card">
+          <div class="kpi-label">今日投递数</div>
+          <div class="kpi-value">23</div>
+          <div class="kpi-change"><span class="text-success">▲ 18.2%</span><span class="muted">较昨日</span></div>
+          <div class="kpi-note">今日成功发出简历的职位数</div>
+        </div>
+        <div class="card">
+          <div class="kpi-label">近 30 天累计投递</div>
+          <div class="kpi-value">1,286</div>
+          <div class="kpi-change"><span class="text-success">▲ 6.4%</span><span class="muted">较上一周期</span></div>
+          <div class="kpi-note">Boss直聘 / 51job / 智联 / 猎聘 四平台合计</div>
+        </div>
+        <div class="card">
+          <div class="kpi-label">简历被查看率</div>
+          <div class="kpi-value">38.5%</div>
+          <div class="kpi-change"><span class="text-success">▲ 2.1pt</span><span class="muted">较上周</span></div>
+          <div class="kpi-note">被 HR 查看数 ÷ 投递数</div>
+        </div>
+        <div class="card">
+          <div class="kpi-label">新沟通与面试邀约</div>
+          <div class="kpi-value">9</div>
+          <div class="kpi-change"><span class="text-success">▲ 4 个会话</span><span class="muted">较上周 · 含面试邀约 3</span></div>
+          <div class="kpi-note">近 7 天新发起的沟通会话数</div>
+        </div>
+      </section>
+
+      <!-- ===== 图表区 ===== -->
+      <section class="chart-grid" aria-label="投递趋势与分布">
+        <div class="card" id="trendCard">
+          <div class="card-head">
+            <h2 class="card-title">近 30 天投递趋势</h2>
+            <span class="card-sub">每日自动投递职位数</span>
+          </div>
+          <div class="chart-box" id="trendChart" style="min-height:240px"></div>
+        </div>
+
+        <div class="chart-side">
+          <div class="card">
+            <div class="card-head">
+              <h2 class="card-title">投递状态分布</h2>
+              <span class="card-sub">近 7 天 · 共 156</span>
+            </div>
+            <div class="segbar" role="img" aria-label="状态分布：已投递 96，已查看 42，被标记感兴趣 14，面试邀约 4">
+              <div style="width:61.5%;background:var(--color-primary)"></div>
+              <div style="width:26.9%;background:var(--color-secondary)"></div>
+              <div style="width:9%;background:var(--color-accent)"></div>
+              <div style="width:2.6%;background:var(--color-neutral)"></div>
+            </div>
+            <div class="legend">
+              <div class="legend-row"><span class="legend-chip" style="background:var(--color-primary)"></span>已投递<span class="num">96</span></div>
+              <div class="legend-row"><span class="legend-chip" style="background:var(--color-secondary)"></span>已查看<span class="num">42</span></div>
+              <div class="legend-row"><span class="legend-chip" style="background:var(--color-accent)"></span>被标记感兴趣<span class="num">14</span></div>
+              <div class="legend-row"><span class="legend-chip" style="background:var(--color-neutral)"></span>面试邀约<span class="num">4</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h2 class="card-title">四平台投递占比</h2>
+              <span class="card-sub">近 30 天</span>
+            </div>
+            <div class="pbar-row">
+              <span class="pbar-name">Boss直聘</span>
+              <div class="pbar-track"><div class="pbar-fill" style="width:46%;background:var(--color-primary)"></div></div>
+              <span class="pbar-val">46%</span>
+            </div>
+            <div class="pbar-row">
+              <span class="pbar-name">51job</span>
+              <div class="pbar-track"><div class="pbar-fill" style="width:27%;background:var(--color-secondary)"></div></div>
+              <span class="pbar-val">27%</span>
+            </div>
+            <div class="pbar-row">
+              <span class="pbar-name">智联招聘</span>
+              <div class="pbar-track"><div class="pbar-fill" style="width:17%;background:var(--color-accent)"></div></div>
+              <span class="pbar-val">17%</span>
+            </div>
+            <div class="pbar-row">
+              <span class="pbar-name">猎聘</span>
+              <div class="pbar-track"><div class="pbar-fill" style="width:10%;background:var(--color-neutral)"></div></div>
+              <span class="pbar-val">10%</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 明细表 ===== -->
+      <section class="card" aria-label="最近投递记录">
+        <div class="card-head">
+          <h2 class="card-title">最近投递记录</h2>
+          <span class="card-sub">按投递时间倒序</span>
+        </div>
+        <div class="table-wrap">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>职位</th>
+                <th>公司</th>
+                <th>平台</th>
+                <th>状态</th>
+                <th class="num">时间</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>高级前端工程师</td><td>星澜科技</td><td>Boss直聘</td>
+                <td class="status-cell"><span class="badge badge-sm badge-soft badge-success">已查看</span></td>
+                <td class="num time">10:24</td>
+              </tr>
+              <tr>
+                <td>Python 开发工程师</td><td>云启互联</td><td>51job</td>
+                <td class="status-cell"><span class="badge badge-sm badge-soft badge-warning">投递中</span></td>
+                <td class="num time">09:58</td>
+              </tr>
+              <tr>
+                <td>数据分析专员</td><td>光谷数谷</td><td>智联招聘</td>
+                <td class="status-cell"><span class="badge badge-sm badge-soft badge-success">面试邀约</span></td>
+                <td class="num time">09:31</td>
+              </tr>
+              <tr>
+                <td>前端开发（实习生）</td><td>青禾数字</td><td>Boss直聘</td>
+                <td class="status-cell"><span class="badge badge-sm badge-soft badge-neutral">已投递</span></td>
+                <td class="num time">昨天 17:42</td>
+              </tr>
+              <tr>
+                <td>全栈工程师</td><td>衡道信息</td><td>猎聘</td>
+                <td class="status-cell"><span class="badge badge-sm badge-soft badge-success">被标记感兴趣</span></td>
+                <td class="num time">昨天 15:08</td>
+              </tr>
+              <tr>
+                <td>后端开发工程师</td><td>迈金智能</td><td>51job</td>
+                <td class="status-cell"><span class="badge badge-sm badge-soft badge-warning">投递中</span></td>
+                <td class="num time">昨天 11:26</td>
+              </tr>
+              <tr>
+                <td>测试开发工程师</td><td>极光无限</td><td>智联招聘</td>
+                <td class="status-cell"><span class="badge badge-sm badge-soft badge-neutral">已投递</span></td>
+                <td class="num time">周一 16:55</td>
+              </tr>
+              <tr>
+                <td>产品运营</td><td>青禾文化</td><td>Boss直聘</td>
+                <td class="status-cell"><span class="badge badge-sm badge-soft badge-success">已查看</span></td>
+                <td class="num time">周一 10:12</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===== 登录中心状态（次要信息，不喧宾夺主） ===== -->
+      <section class="card" aria-label="四平台登录状态">
+        <div class="card-head">
+          <h2 class="card-title">登录中心</h2>
+          <span class="card-sub">四平台扫码登录状态</span>
+        </div>
+        <div class="login-row">
+          <div class="login-item"><span class="status status-success" aria-hidden="true"></span><span class="platform">Boss直聘</span><span class="state">已登录</span></div>
+          <div class="login-item"><span class="status status-success" aria-hidden="true"></span><span class="platform">51job</span><span class="state">已登录</span></div>
+          <div class="login-item"><span class="status status-warning" aria-hidden="true"></span><span class="platform">智联招聘</span><span class="state">登录已过期</span>
+            <button class="btn btn-soft btn-xs">扫码重连</button></div>
+          <div class="login-item"><span class="status status-success" aria-hidden="true"></span><span class="platform">猎聘</span><span class="state">已登录</span></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ===== 通知浮层（原生 popover） ===== -->
+<div id="notifPop" popover aria-label="通知列表">
+  <h2 id="notifTitle">通知</h2>
+  <div class="notif-item">星澜科技 查看了你的简历<div class="t">10:24 · Boss直聘</div></div>
+  <div class="notif-item">光谷数谷 发来面试邀约<div class="t">09:31 · 智联招聘</div></div>
+  <div class="notif-item">智联招聘 登录已过期，请重新扫码<div class="t">08:57 · 登录中心</div></div>
+</div>
+
+<!-- ===== 自定义时间范围（原生 dialog + showModal） ===== -->
+<dialog id="rangeDialog" class="modal" aria-labelledby="rangeTitle">
+  <div class="modal-box">
+    <h3 id="rangeTitle" style="font-size:15px;font-weight:600;margin:0">自定义时间范围</h3>
+    <div class="form-row">
+      <label for="dateStart">开始</label>
+      <input type="date" id="dateStart" value="2026-10-12">
+    </div>
+    <div class="form-row">
+      <label for="dateEnd">结束</label>
+      <input type="date" id="dateEnd" value="2026-10-19">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-soft" id="rangeCancel">取消</button>
+      <button class="btn btn-primary" id="rangeOk">确定</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+(function () {
+  // ===== 近 30 天投递趋势：内联 SVG 线稿（无图表库） =====
+  var data = [8,10,7,12,15,9,6,11,14,18,16,13,10,8,12,15,19,17,14,11,9,13,16,20,18,15,12,14,19,23];
+  var el = document.getElementById('trendChart');
+  if (!data.length) {
+    el.textContent = '近 30 天暂无投递数据';
+  } else {
+    var W = 660, H = 240, padL = 36, padR = 14, padT = 18, padB = 28, yMax = 25;
+    var iw = W - padL - padR, ih = H - padT - padB;
+    var x = function (i) { return padL + iw * (i / (data.length - 1)); };
+    var y = function (v) { return padT + ih * (1 - v / yMax); };
+    var NS = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', '近 30 天每日投递数量折线图');
+
+    // 横向网格线（8% 透明度） + Y 轴标签（从 0 起，不截断）
+    [0, 8, 16, 24].forEach(function (v) {
+      var ln = document.createElementNS(NS, 'line');
+      ln.setAttribute('x1', padL); ln.setAttribute('x2', W - padR);
+      ln.setAttribute('y1', y(v)); ln.setAttribute('y2', y(v));
+      ln.setAttribute('stroke', 'var(--color-base-content)');
+      ln.setAttribute('stroke-opacity', '0.08');
+      svg.appendChild(ln);
+      var t = document.createElementNS(NS, 'text');
+      t.setAttribute('x', padL - 8); t.setAttribute('y', y(v) + 4);
+      t.setAttribute('text-anchor', 'end'); t.setAttribute('class', 'axis');
+      t.textContent = v;
+      svg.appendChild(t);
+    });
+
+    // 面积填充（12% 透明度）
+    var d = '';
+    data.forEach(function (v, i) { d += (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1) + ' '; });
+    var area = document.createElementNS(NS, 'path');
+    area.setAttribute('d', d + 'L' + x(data.length - 1) + ' ' + y(0) + ' L' + x(0) + ' ' + y(0) + ' Z');
+    area.setAttribute('fill', 'var(--color-primary)');
+    area.setAttribute('fill-opacity', '0.12');
+    svg.appendChild(area);
+
+    // 趋势线 2px
+    var line = document.createElementNS(NS, 'path');
+    line.setAttribute('d', d);
+    line.setAttribute('fill', 'none');
+    line.setAttribute('stroke', 'var(--color-primary)');
+    line.setAttribute('stroke-width', '2');
+    line.setAttribute('stroke-linejoin', 'round');
+    line.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(line);
+
+    // 末端空心圆点
+    var dot = document.createElementNS(NS, 'circle');
+    dot.setAttribute('cx', x(data.length - 1));
+    dot.setAttribute('cy', y(data[data.length - 1]));
+    dot.setAttribute('r', '4');
+    dot.setAttribute('fill', 'var(--color-base-200)');
+    dot.setAttribute('stroke', 'var(--color-primary)');
+    dot.setAttribute('stroke-width', '2');
+    svg.appendChild(dot);
+
+    // X 轴日期标签（每 5 天一个）
+    for (var i = 0; i < data.length; i += 5) {
+      var dt = new Date(Date.now() - (29 - i) * 864e5);
+      var t = document.createElementNS(NS, 'text');
+      t.setAttribute('x', x(i)); t.setAttribute('y', H - 8);
+      t.setAttribute('text-anchor', 'middle'); t.setAttribute('class', 'axis');
+      t.textContent = (dt.getMonth() + 1) + '/' + dt.getDate();
+      svg.appendChild(t);
+    }
+    el.appendChild(svg);
+  }
+
+  // ===== 时间范围分段控件 =====
+  var buttons = document.querySelectorAll('.seg-btn');
+  var trendCard = document.getElementById('trendCard');
+  var dialog = document.getElementById('rangeDialog');
+  buttons.forEach(function (b) {
+    b.addEventListener('click', function () {
+      if (b.dataset.range === 'custom') { dialog.showModal(); return; }
+      buttons.forEach(function (x) { x.classList.remove('seg-active'); x.setAttribute('aria-pressed', 'false'); });
+      b.classList.add('seg-active');
+      b.setAttribute('aria-pressed', 'true');
+      trendCard.classList.add('is-loading');
+      setTimeout(function () { trendCard.classList.remove('is-loading'); }, 300);
+    });
+  });
+  document.getElementById('rangeCancel').addEventListener('click', function () { dialog.close(); });
+  document.getElementById('rangeOk').addEventListener('click', function () { dialog.close(); });
+
+  // ===== 通知 popover 开合状态同步 aria-expanded =====
+  var bell = document.getElementById('bellBtn');
+  var pop = document.getElementById('notifPop');
+  pop.addEventListener('toggle', function () {
+    bell.setAttribute('aria-expanded', String(pop.matches(':open')));
+  });
+})();
+</script>
+</body>
+</html>

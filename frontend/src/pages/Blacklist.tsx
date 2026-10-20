@@ -55,8 +55,8 @@ export default function Blacklist() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">企业黑名单</h2>
-          <p className="text-sm text-slate-500 mt-1">管理不想投递的公司，共 {total} 家</p>
+          <h2 className="text-xl font-bold text-fg">企业黑名单</h2>
+          <p className="text-sm text-fg-mute mt-1">管理不想投递的公司，共 {total} 家</p>
         </div>
         <button
           onClick={() => setShowAdd(!showAdd)}
@@ -68,24 +68,24 @@ export default function Blacklist() {
 
       {/* 添加表单 */}
       {showAdd && (
-        <div className="bg-white rounded-lg border border-slate-200 p-4">
-          <div className="grid grid-cols-3 gap-4">
+        <div className="bg-card rounded-lg border border-line p-4">
+          <div className="grid grid-cols-1 min-[900px]:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">公司名称 *</label>
+              <label className="block text-xs font-medium text-fg-dim mb-1">公司名称 *</label>
               <input
                 type="text"
                 value={newItem.company_name}
                 onChange={e => setNewItem({ ...newItem, company_name: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2 border border-line rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                 placeholder="输入公司全称"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">平台</label>
+              <label className="block text-xs font-medium text-fg-dim mb-1">平台</label>
               <select
                 value={newItem.platform}
                 onChange={e => setNewItem({ ...newItem, platform: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2 border border-line rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 <option value="">全部平台</option>
                 <option value="boss">Boss直聘</option>
@@ -95,12 +95,12 @@ export default function Blacklist() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">原因</label>
+              <label className="block text-xs font-medium text-fg-dim mb-1">原因</label>
               <input
                 type="text"
                 value={newItem.reason}
                 onChange={e => setNewItem({ ...newItem, reason: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2 border border-line rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                 placeholder="如：不匹配、已拒绝等"
               />
             </div>
@@ -108,7 +108,7 @@ export default function Blacklist() {
           <div className="mt-4 flex gap-2 justify-end">
             <button
               onClick={() => setShowAdd(false)}
-              className="px-4 py-2 text-sm border border-slate-300 rounded-md hover:bg-slate-50"
+              className="px-4 py-2 text-sm border border-line rounded-md hover:bg-surface text-fg-dim"
             >
               取消
             </button>
@@ -123,43 +123,43 @@ export default function Blacklist() {
       )}
 
       {/* 黑名单列表 */}
-      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div className="bg-card rounded-lg border border-line overflow-x-auto">
         {loading ? (
-          <div className="text-center py-12 text-slate-400">加载中...</div>
+          <div className="text-center py-12 text-fg-mute">加载中...</div>
         ) : items.length === 0 ? (
           <div className="text-center py-16">
-            <Ban className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-400">黑名单为空</p>
-            <p className="text-xs text-slate-400 mt-1">添加公司后，投递时将自动跳过</p>
+            <Ban className="w-12 h-12 text-fg-mute mx-auto mb-3" />
+            <p className="text-fg-mute">黑名单为空</p>
+            <p className="text-xs text-fg-mute mt-1">添加公司后，投递时将自动跳过</p>
           </div>
         ) : (
           <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-200">
+            <thead className="bg-surface border-b border-line">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">公司名称</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">平台</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">原因</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">来源</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">添加时间</th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-slate-500 uppercase">操作</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-fg-mute uppercase">公司名称</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-fg-mute uppercase">平台</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-fg-mute uppercase">原因</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-fg-mute uppercase">来源</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-fg-mute uppercase">添加时间</th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-fg-mute uppercase">操作</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-line-subtle">
               {items.map((item: any) => (
-                <tr key={item.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 text-sm text-slate-800 font-medium">{item.company_name}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600">
+                <tr key={item.id} className="hover:bg-surface/40">
+                  <td className="px-4 py-3 text-sm text-fg font-medium">{item.company_name}</td>
+                  <td className="px-4 py-3 text-sm text-fg-dim">
                     {item.platform === 'boss' ? 'Boss直聘' : item.platform === 'job51' ? '51job' : item.platform === 'zhilian' ? '智联招聘' : item.platform === 'liepin' ? '猎聘' : '全部'}
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-600">{item.reason || '-'}</td>
+                  <td className="px-4 py-3 text-sm text-fg-dim">{item.reason || '-'}</td>
                   <td className="px-4 py-3 text-sm">
                     <span className={`px-2 py-0.5 rounded text-xs ${
-                      item.source === 'auto' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'
+                      item.source === 'auto' ? 'bg-primary/10 text-primary-300' : 'bg-surface text-fg-mute'
                     }`}>
                       {item.source === 'auto' ? '自动' : '手动'}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-500">
+                  <td className="px-4 py-3 text-sm text-fg-mute">
                     {new Date(item.created_at).toLocaleString('zh-CN')}
                   </td>
                   <td className="px-4 py-3 text-center">

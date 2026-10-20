@@ -55,9 +55,9 @@ export default function Results() {
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
-      success: 'bg-green-100 text-green-700',
-      failed: 'bg-red-100 text-red-700',
-      skipped: 'bg-amber-100 text-amber-700',
+      success: 'bg-success/10 text-success',
+      failed: 'bg-error/10 text-error',
+      skipped: 'bg-warning/10 text-warning',
     }
     const labels: Record<string, string> = {
       success: '成功',
@@ -65,7 +65,7 @@ export default function Results() {
       skipped: '跳过',
     }
     return (
-      <span className={`px-2 py-0.5 rounded text-xs font-medium ${styles[status] || 'bg-slate-100'}`}>
+      <span className={`px-2 py-0.5 rounded text-xs font-medium ${styles[status] || 'bg-surface'}`}>
         {labels[status] || status}
       </span>
     )
@@ -81,36 +81,36 @@ export default function Results() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-slate-800">投递记录</h2>
-        <p className="text-sm text-slate-500 mt-1">查看投递详情、趋势分析和统计数据</p>
+        <h2 className="text-xl font-bold text-fg">投递记录</h2>
+        <p className="text-sm text-fg-mute mt-1">查看投递详情、趋势分析和统计数据</p>
       </div>
 
       {/* 统计概览 */}
       {stats && (
-        <div className="grid grid-cols-4 gap-4">
-          <div className="bg-white rounded-lg border border-slate-200 p-4">
-            <div className="flex items-center gap-2 text-slate-500 text-xs mb-1">
+        <div className="grid grid-cols-2 min-[900px]:grid-cols-4 gap-4">
+          <div className="bg-card rounded-lg border border-line p-4">
+            <div className="flex items-center gap-2 text-fg-mute text-xs mb-1">
               <TrendingUp className="w-3.5 h-3.5" />
               总投递
             </div>
-            <p className="text-2xl font-bold text-slate-800">{stats.total}</p>
+            <p className="text-2xl font-bold text-fg">{stats.total}</p>
           </div>
-          <div className="bg-white rounded-lg border border-slate-200 p-4">
-            <div className="flex items-center gap-2 text-slate-500 text-xs mb-1">
+          <div className="bg-card rounded-lg border border-line p-4">
+            <div className="flex items-center gap-2 text-fg-mute text-xs mb-1">
               <CheckCircle className="w-3.5 h-3.5 text-green-500" />
               成功
             </div>
             <p className="text-2xl font-bold text-green-600">{stats.success}</p>
           </div>
-          <div className="bg-white rounded-lg border border-slate-200 p-4">
-            <div className="flex items-center gap-2 text-slate-500 text-xs mb-1">
+          <div className="bg-card rounded-lg border border-line p-4">
+            <div className="flex items-center gap-2 text-fg-mute text-xs mb-1">
               <XCircle className="w-3.5 h-3.5 text-red-500" />
               失败
             </div>
             <p className="text-2xl font-bold text-red-600">{stats.failed}</p>
           </div>
-          <div className="bg-white rounded-lg border border-slate-200 p-4">
-            <div className="flex items-center gap-2 text-slate-500 text-xs mb-1">
+          <div className="bg-card rounded-lg border border-line p-4">
+            <div className="flex items-center gap-2 text-fg-mute text-xs mb-1">
               <TrendingUp className="w-3.5 h-3.5" />
               成功率
             </div>
@@ -123,8 +123,8 @@ export default function Results() {
       {trend && (
         <div className="grid grid-cols-3 gap-4">
           {/* 投递趋势柱状图 */}
-          <div className="col-span-2 bg-white rounded-lg border border-slate-200 p-4">
-            <h3 className="text-sm font-medium text-slate-700 mb-4">近7天投递趋势</h3>
+          <div className="col-span-2 bg-card rounded-lg border border-line p-4">
+            <h3 className="text-sm font-medium text-fg-dim mb-4">近7天投递趋势</h3>
             <div className="flex items-end justify-between h-40 gap-2">
               {trend.daily?.map((d: any) => (
                 <div key={d.date} className="flex-1 flex flex-col items-center">
@@ -133,12 +133,12 @@ export default function Results() {
                       className="w-full bg-primary-500 rounded-t transition-all hover:bg-primary-600 relative group"
                       style={{ height: `${(d.total / maxDaily) * 100}%`, minHeight: d.total > 0 ? '4px' : '0' }}
                     >
-                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-fg-dim opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                         {d.total}个
                       </div>
                     </div>
                   </div>
-                  <span className="text-xs text-slate-400 mt-2">{d.date.slice(5)}</span>
+                  <span className="text-xs text-fg-mute mt-2">{d.date.slice(5)}</span>
                 </div>
               ))}
             </div>
@@ -147,16 +147,16 @@ export default function Results() {
           {/* 平台分布 + 最佳时间 */}
           <div className="space-y-4">
             {/* 平台分布 */}
-            <div className="bg-white rounded-lg border border-slate-200 p-4">
-              <h3 className="text-sm font-medium text-slate-700 mb-3">平台分布</h3>
+            <div className="bg-card rounded-lg border border-line p-4">
+              <h3 className="text-sm font-medium text-fg-dim mb-3">平台分布</h3>
               <div className="space-y-2">
                 {Object.entries(platformData).map(([platform, data]: [string, any]) => (
                   <div key={platform}>
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-slate-600">{PLATFORM_LABELS[platform] || platform}</span>
-                      <span className="text-slate-400">{data.total} ({Math.round(data.total / platformTotal * 100)}%)</span>
+                      <span className="text-fg-dim">{PLATFORM_LABELS[platform] || platform}</span>
+                      <span className="text-fg-mute">{data.total} ({Math.round(data.total / platformTotal * 100)}%)</span>
                     </div>
-                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-2 bg-surface rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full ${PLATFORM_COLORS[platform] || 'bg-slate-500'}`}
                         style={{ width: `${(data.total / platformTotal) * 100}%` }}
@@ -165,14 +165,14 @@ export default function Results() {
                   </div>
                 ))}
                 {Object.keys(platformData).length === 0 && (
-                  <p className="text-xs text-slate-400 text-center py-4">暂无数据</p>
+                  <p className="text-xs text-fg-mute text-center py-4">暂无数据</p>
                 )}
               </div>
             </div>
 
             {/* 最佳投递时间 */}
-            <div className="bg-white rounded-lg border border-slate-200 p-4">
-              <h3 className="text-sm font-medium text-slate-700 mb-3 flex items-center gap-1">
+            <div className="bg-card rounded-lg border border-line p-4">
+              <h3 className="text-sm font-medium text-fg-dim mb-3 flex items-center gap-1">
                 <Clock className="w-3.5 h-3.5" />
                 最佳投递时段
               </h3>
@@ -180,13 +180,13 @@ export default function Results() {
                 <div className="space-y-2">
                   {trend.best_hours.map((h: any) => (
                     <div key={h.hour} className="flex items-center justify-between text-xs">
-                      <span className="text-slate-600">{h.hour}:00 - {h.hour + 1}:00</span>
+                      <span className="text-fg-dim">{h.hour}:00 - {h.hour + 1}:00</span>
                       <span className="text-green-600 font-medium">{h.success_rate}%</span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-slate-400 text-center py-2">数据不足，多投几次后显示</p>
+                <p className="text-xs text-fg-mute text-center py-2">数据不足，多投几次后显示</p>
               )}
             </div>
           </div>
@@ -194,12 +194,12 @@ export default function Results() {
       )}
 
       {/* 筛选器 */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-3">
           <select
             value={filter.platform}
             onChange={e => setFilter({ ...filter, platform: e.target.value })}
-            className="px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="px-3 py-2 border border-line rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="">全部平台</option>
             <option value="boss">Boss直聘</option>
@@ -210,7 +210,7 @@ export default function Results() {
           <select
             value={filter.status}
             onChange={e => setFilter({ ...filter, status: e.target.value })}
-            className="px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="px-3 py-2 border border-line rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="">全部状态</option>
             <option value="success">成功</option>
@@ -218,10 +218,10 @@ export default function Results() {
             <option value="skipped">跳过</option>
           </select>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => handleExport('csv')}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-300 rounded-md hover:bg-slate-50 text-slate-600 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm border border-line rounded-md hover:bg-surface text-fg-dim transition-colors"
           >
             <FileText className="w-4 h-4" />
             导出CSV
@@ -237,36 +237,36 @@ export default function Results() {
       </div>
 
       {/* 结果列表 */}
-      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div className="bg-card rounded-lg border border-line overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-slate-50 border-b border-slate-200">
+          <thead className="bg-surface border-b border-line">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">职位</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">公司</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">薪资</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">城市</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">平台</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">状态</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">时间</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-fg-mute uppercase">职位</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-fg-mute uppercase">公司</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-fg-mute uppercase">薪资</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-fg-mute uppercase">城市</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-fg-mute uppercase">平台</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-fg-mute uppercase">状态</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-fg-mute uppercase">时间</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-line-subtle">
             {loading ? (
-              <tr><td colSpan={7} className="px-4 py-12 text-center text-slate-400">加载中...</td></tr>
+              <tr><td colSpan={7} className="px-4 py-12 text-center text-fg-mute">加载中...</td></tr>
             ) : results.length === 0 ? (
-              <tr><td colSpan={7} className="px-4 py-12 text-center text-slate-400">暂无投递记录</td></tr>
+              <tr><td colSpan={7} className="px-4 py-12 text-center text-fg-mute">暂无投递记录</td></tr>
             ) : (
               results.map((item: any) => (
-                <tr key={item.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 text-sm text-slate-800 font-medium max-w-xs truncate">{item.job_title}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600">{item.company}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600">{item.salary || '-'}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600">{item.city || '-'}</td>
-                  <td className="px-4 py-3 text-sm text-slate-500">
+                <tr key={item.id} className="hover:bg-surface/40">
+                  <td className="px-4 py-3 text-sm text-fg font-medium max-w-xs truncate">{item.job_title}</td>
+                  <td className="px-4 py-3 text-sm text-fg-dim">{item.company}</td>
+                  <td className="px-4 py-3 text-sm text-fg-dim">{item.salary || '-'}</td>
+                  <td className="px-4 py-3 text-sm text-fg-dim">{item.city || '-'}</td>
+                  <td className="px-4 py-3 text-sm text-fg-mute">
                     {PLATFORM_LABELS[item.platform] || item.platform}
                   </td>
                   <td className="px-4 py-3">{getStatusBadge(item.status)}</td>
-                  <td className="px-4 py-3 text-sm text-slate-500">
+                  <td className="px-4 py-3 text-sm text-fg-mute">
                     {new Date(item.created_at).toLocaleString('zh-CN')}
                   </td>
                 </tr>

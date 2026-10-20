@@ -5,18 +5,20 @@
 @tailwind utilities;
 
 :root {
-  /* 工业风设计令牌 */
-  --bg-deep: #07090d;
-  --bg-base: #0d1117;
-  --bg-surface: #121821;
-  --bg-elevated: #161d28;
-  --bg-panel: #1c2430;
-  --border-subtle: #232c3a;
-  --border-default: #2d3748;
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --accent: #f59e0b;
+  color-scheme: dark;
+
+  /* 深色主题设计令牌：近黑冷灰三层，层次靠明度 */
+  --bg-deep: #0d1115;
+  --bg-base: #14181c;
+  --bg-surface: #191d23;
+  --bg-elevated: #1e2227;
+  --bg-panel: #262b32;
+  --border-subtle: #22262d;
+  --border-default: #2b3038;
+  --text-primary: #eef1f5;
+  --text-secondary: #b6bbc3;
+  --text-muted: #7b8189;
+  --accent: #3f93f7;
 }
 
 * {
@@ -36,7 +38,53 @@ body {
   color: var(--text-primary);
 }
 
-/* 工业风滚动条 */
+/* 原生表单控件深色化：避免白底色块 */
+input,
+textarea,
+select {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+select option {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+}
+input[type="range"] {
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  background: var(--border-default);
+  height: 4px;
+  border-radius: 9999px;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -5px;
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: var(--accent);
+}
+input[type="range"]::-moz-range-track {
+  background: var(--border-default);
+  height: 4px;
+  border-radius: 9999px;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: none;
+  border-radius: 9999px;
+  background: var(--accent);
+}
+
+/* 深色滚动条 */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -46,45 +94,45 @@ body {
 }
 ::-webkit-scrollbar-thumb {
   background: var(--border-default);
-  border-radius: 0;
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
 
-/* 选中文字 */
+/* 选中文字：靛蓝系 */
 ::selection {
-  background: rgba(245, 158, 11, 0.3);
+  background: rgba(63, 147, 247, 0.35);
   color: var(--text-primary);
 }
 
 @layer components {
-  /* 面板容器 - 工业风卡片 */
+  /* 面板容器 - 深色卡片 */
   .panel {
-    @apply bg-ink-850 border border-ink-700 rounded-sm;
-    box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.03), 0 4px 24px rgba(0,0,0,0.3);
+    @apply bg-card border border-line rounded-md;
+    box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.03);
   }
 
-  /* 面板头部 - 带标签条 */
+  /* 面板头部 - 带分隔线 */
   .panel-header {
-    @apply flex items-center justify-between px-4 py-3 border-b border-ink-700;
+    @apply flex items-center justify-between px-4 py-3 border-b border-line-subtle;
   }
 
   /* 数据标签 - 等宽字体小标签 */
   .data-label {
-    @apply font-mono text-xs uppercase tracking-wider text-chalk-400;
+    @apply font-mono text-xs uppercase tracking-wider text-fg-mute;
   }
 
   /* 数据值 - 等宽字体 */
   .data-value {
-    @apply font-mono text-sm text-chalk-100;
+    @apply font-mono text-sm text-fg;
   }
 
   /* 状态指示灯 */
   .status-dot {
     @apply inline-block w-2 h-2 rounded-full;
   }
-  .status-dot.run { @apply bg-signal-run animate-pulse-slow; box-shadow: 0 0 8px rgba(16,185,129,0.6); }
+  .status-dot.run { @apply bg-signal-run animate-pulse-slow; box-shadow: 0 0 8px rgba(63,191,134,0.6); }
   .status-dot.wait { @apply bg-signal-wait; }
   .status-dot.done { @apply bg-signal-done; }
   .status-dot.stop { @apply bg-signal-stop; }
@@ -96,7 +144,7 @@ body {
     @apply h-1 w-full;
   }
 
-  /* 工业风按钮 */
+  /* 按钮 */
   .btn-industrial {
     @apply px-4 py-2 font-mono text-xs uppercase tracking-wider font-medium transition-all duration-150 border;
   }
@@ -104,7 +152,7 @@ body {
     @apply translate-y-px;
   }
 
-  /* 扫描线效果 */
+  /* 扫描线效果（靛蓝） */
   .scanline {
     position: relative;
     overflow: hidden;
@@ -116,7 +164,7 @@ body {
     left: 0;
     right: 0;
     height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(245,158,11,0.4), transparent);
+    background: linear-gradient(90deg, transparent, rgba(63,147,247,0.4), transparent);
     animation: scan 3s linear infinite;
     pointer-events: none;
   }
@@ -124,8 +172,8 @@ body {
   /* 网格背景纹理 */
   .grid-bg {
     background-image:
-      linear-gradient(rgba(45,55,72,0.3) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(45,55,72,0.3) 1px, transparent 1px);
+      linear-gradient(rgba(43,48,56,0.3) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(43,48,56,0.3) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 
@@ -149,10 +197,10 @@ body {
   font-size: 12px;
   line-height: 1.7;
 }
-.log-info { color: #94a3b8; }
-.log-success { color: #10b981; }
-.log-error { color: #ef4444; }
-.log-warning { color: #f59e0b; }
+.log-info { color: #9aa0a9; }
+.log-success { color: #3fbf86; }
+.log-error { color: #ef656b; }
+.log-warning { color: #e1b75c; }
 
 /* 进度条动画 */
 .progress-bar {
@@ -166,7 +214,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
   animation: flow 1.5s ease-in-out infinite;
 }
 

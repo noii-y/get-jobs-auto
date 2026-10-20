@@ -74,10 +74,10 @@ interface LogEntry {
 }
 
 const PLATFORMS = [
-  { value: 'boss', label: 'Boss直聘', color: '#10b981', bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', dot: 'bg-green-500', bar: 'bg-green-500' },
-  { value: 'job51', label: '51job', color: '#3b82f6', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', dot: 'bg-blue-500', bar: 'bg-blue-500' },
-  { value: 'zhilian', label: '智联招聘', color: '#f59e0b', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', dot: 'bg-amber-500', bar: 'bg-amber-500' },
-  { value: 'liepin', label: '猎聘', color: '#8b5cf6', bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700', dot: 'bg-violet-500', bar: 'bg-violet-500' },
+  { value: 'boss', label: 'Boss直聘', color: '#10b981', bg: 'bg-success/10', border: 'border-success/40', text: 'text-success', dot: 'bg-success', bar: 'bg-success' },
+  { value: 'job51', label: '51job', color: '#3b82f6', bg: 'bg-primary/10', border: 'border-primary/40', text: 'text-primary-300', dot: 'bg-primary-400', bar: 'bg-primary-500' },
+  { value: 'zhilian', label: '智联招聘', color: '#f59e0b', bg: 'bg-warning/10', border: 'border-warning/40', text: 'text-warning', dot: 'bg-warning', bar: 'bg-warning' },
+  { value: 'liepin', label: '猎聘', color: '#8b5cf6', bg: 'bg-violet-500/10', border: 'border-violet-500/40', text: 'text-violet-300', dot: 'bg-violet-500', bar: 'bg-violet-500' },
 ]
 
 const getPlatformInfo = (value: string) => PLATFORMS.find(p => p.value === value) || PLATFORMS[0]
@@ -90,13 +90,13 @@ const statusLabel = (s: string) => ({
 }[s] || s)
 
 const statusBadgeClass = (s: string) => ({
-  running: 'bg-green-50 text-green-700 border-green-200',
-  pending: 'bg-slate-50 text-slate-500 border-slate-200',
-  completed: 'bg-blue-50 text-blue-700 border-blue-200',
-  stopped: 'bg-slate-50 text-slate-500 border-slate-200',
-  failed: 'bg-red-50 text-red-700 border-red-200',
-  paused: 'bg-amber-50 text-amber-700 border-amber-200',
-}[s] || 'bg-slate-50 text-slate-500 border-slate-200')
+  running: 'bg-success/10 text-success border-success/30',
+  pending: 'bg-surface text-fg-mute border-line',
+  completed: 'bg-primary/10 text-primary-300 border-primary/30',
+  stopped: 'bg-surface text-fg-mute border-line',
+  failed: 'bg-error/10 text-error border-error/30',
+  paused: 'bg-warning/10 text-warning border-warning/30',
+}[s] || 'bg-surface text-fg-mute border-line')
 
 export default function BatchDashboard() {
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['boss', 'zhilian', 'liepin', 'job51'])
@@ -342,12 +342,12 @@ export default function BatchDashboard() {
   const overallProgress = batchStatus ? (batchStatus.completed_runs / batchStatus.total_runs) * 100 : 0
 
   const logLevelClass = (level: string) => ({
-    info: 'text-slate-500',
+    info: 'text-fg-mute',
     success: 'text-green-600',
     error: 'text-red-600',
     warn: 'text-amber-600',
-    skip: 'text-slate-400',
-  }[level] || 'text-slate-500')
+    skip: 'text-fg-mute',
+  }[level] || 'text-fg-mute')
 
   return (
     <div className="space-y-5">
@@ -359,38 +359,38 @@ export default function BatchDashboard() {
               <Layers className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-800 tracking-tight">全平台一键投递</h1>
-              <p className="text-xs text-slate-400">统一配置 · 串行执行 · SSE实时监控 · 失败自动重试</p>
+              <h1 className="text-xl font-bold text-fg tracking-tight">全平台一键投递</h1>
+              <p className="text-xs text-fg-mute">统一配置 · 串行执行 · SSE实时监控 · 失败自动重试</p>
             </div>
           </div>
         </div>
         {isRunning && (
           <button
             onClick={handleStop}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm font-medium shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-card border border-error/40 text-error rounded-lg hover:bg-error/10 transition-colors text-sm font-medium"
           >
             <Square className="w-4 h-4" /> 终止全部
           </button>
         )}
       </div>
 
-      <div className="grid grid-cols-12 gap-5">
+      <div className="grid grid-cols-1 min-[900px]:grid-cols-12 gap-5">
         {/* 左侧：配置面板 */}
-        <div className="col-span-4 space-y-4">
+        <div className="min-[900px]:col-span-4 space-y-4">
           {/* 配置卡片 */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+          <div className="bg-card rounded-xl border border-line shadow-sm overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-line-subtle flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Terminal className="w-4 h-4 text-primary-500" />
-                <span className="text-sm font-semibold text-slate-700">投递配置</span>
+                <span className="text-sm font-semibold text-fg-dim">投递配置</span>
               </div>
-              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Config</span>
+              <span className="text-[10px] font-mono text-fg-mute uppercase tracking-wider">Config</span>
             </div>
             <div className="p-5 space-y-4">
               {/* 平台选择 */}
               <div>
                 <div className="flex items-center justify-between mb-2.5">
-                  <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">目标平台</label>
+                  <label className="text-xs font-medium text-fg-mute uppercase tracking-wider">目标平台</label>
                   <button onClick={toggleAll} className="text-xs text-primary-600 hover:text-primary-700 font-medium">
                     {selectedPlatforms.length === PLATFORMS.length ? '全不选' : '全选'}
                   </button>
@@ -406,13 +406,13 @@ export default function BatchDashboard() {
                         className={`relative p-3 text-left rounded-lg border-2 transition-all duration-200 ${
                           selected
                             ? `${p.bg} ${p.border} shadow-sm`
-                            : 'bg-slate-50 border-slate-100 opacity-50 hover:opacity-75'
+                            : 'bg-surface border-line-subtle opacity-50 hover:opacity-75'
                         } ${isRunning ? 'cursor-not-allowed' : 'cursor-pointer hover:shadow-md hover:-translate-y-0.5'}`}
                       >
                         {selected && <div className={`absolute top-0 left-0 right-0 h-1 ${p.bar} rounded-t-lg`} />}
                         <div className="flex items-center gap-2">
                           <div className={`w-2.5 h-2.5 rounded-full ${p.dot} ${selected ? 'animate-pulse' : ''}`} />
-                          <span className={`text-sm font-medium ${selected ? 'text-slate-800' : 'text-slate-400'}`}>{p.label}</span>
+                          <span className={`text-sm font-medium ${selected ? 'text-fg' : 'text-fg-mute'}`}>{p.label}</span>
                         </div>
                       </button>
                     )
@@ -422,13 +422,13 @@ export default function BatchDashboard() {
 
               {/* 关键词 */}
               <div>
-                <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5">搜索关键词</label>
+                <label className="block text-xs font-medium text-fg-mute uppercase tracking-wider mb-1.5">搜索关键词</label>
                 <div className="relative">
-                  <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-fg-mute" />
                   <input
                     type="text" value={keyword} onChange={e => setKeyword(e.target.value)}
                     disabled={isRunning}
-                    className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 focus:bg-white focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none transition-all disabled:opacity-50"
+                    className="w-full pl-10 pr-3 py-2.5 bg-surface border border-line rounded-lg text-sm text-fg focus:bg-base-200 focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none transition-all disabled:opacity-50"
                     placeholder="职位关键词"
                   />
                 </div>
@@ -437,41 +437,41 @@ export default function BatchDashboard() {
               {/* 城市 + 页数 */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5">城市</label>
+                  <label className="block text-xs font-medium text-fg-mute uppercase tracking-wider mb-1.5">城市</label>
                   <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-fg-mute" />
                     <select
                       value={city} onChange={e => setCity(e.target.value)} disabled={isRunning}
-                      className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 focus:bg-white focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none disabled:opacity-50 appearance-none cursor-pointer"
+                      className="w-full pl-10 pr-3 py-2.5 bg-surface border border-line rounded-lg text-sm text-fg focus:bg-base-200 focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none disabled:opacity-50 appearance-none cursor-pointer"
                     >
                       {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5">最大页数</label>
+                  <label className="block text-xs font-medium text-fg-mute uppercase tracking-wider mb-1.5">最大页数</label>
                   <input
                     type="number" value={maxPages} onChange={e => setMaxPages(Math.max(1, parseInt(e.target.value) || 1))}
                     min={1} max={10} disabled={isRunning}
-                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 font-mono focus:bg-white focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none disabled:opacity-50"
+                    className="w-full px-3 py-2.5 bg-surface border border-line rounded-lg text-sm text-fg font-mono focus:bg-base-200 focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none disabled:opacity-50"
                   />
                 </div>
               </div>
 
               {/* 打招呼语 */}
               <div>
-                <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1.5">
-                  打招呼语 <span className="text-slate-300 normal-case font-normal">// Boss/猎聘</span>
+                <label className="block text-xs font-medium text-fg-mute uppercase tracking-wider mb-1.5">
+                  打招呼语 <span className="text-fg-mute normal-case font-normal">// Boss/猎聘</span>
                 </label>
                 <textarea
                   value={greeting} onChange={e => setGreeting(e.target.value)} rows={2}
                   disabled={isRunning}
-                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 resize-none focus:bg-white focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none disabled:opacity-50"
+                  className="w-full px-3 py-2.5 bg-surface border border-line rounded-lg text-sm text-fg-dim resize-none focus:bg-base-200 focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none disabled:opacity-50"
                 />
               </div>
 
               {/* 公司背调 */}
-              <label className="flex items-center gap-2.5 cursor-pointer p-2.5 bg-slate-50 rounded-lg border border-slate-100 hover:border-slate-200 transition-colors">
+              <label className="flex items-center gap-2.5 cursor-pointer p-2.5 bg-surface rounded-lg border border-line-subtle hover:border-line transition-colors">
                 <input
                   type="checkbox" checked={enableCompanyCheck}
                   onChange={e => setEnableCompanyCheck(e.target.checked)}
@@ -479,10 +479,10 @@ export default function BatchDashboard() {
                   className="w-4 h-4 accent-primary-600 rounded"
                 />
                 <div className="flex-1">
-                  <span className="text-sm text-slate-700 font-medium">公司背调过滤</span>
-                  <p className="text-[11px] text-slate-400">自动跳过高风险公司</p>
+                  <span className="text-sm text-fg-dim font-medium">公司背调过滤</span>
+                  <p className="text-[11px] text-fg-mute">自动跳过高风险公司</p>
                 </div>
-                <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${enableCompanyCheck ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-400'}`}>
+                <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${enableCompanyCheck ? 'bg-green-100 text-green-700' : 'bg-surface text-fg-mute'}`}>
                   {enableCompanyCheck ? 'ON' : 'OFF'}
                 </span>
               </label>
@@ -491,7 +491,7 @@ export default function BatchDashboard() {
               <button
                 onClick={handleStart}
                 disabled={isStarting || isRunning}
-                className="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-lg font-semibold text-sm transition-all duration-200 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-primary-500/25 hover:shadow-primary-500/35 hover:-translate-y-0.5 active:translate-y-0"
+                className="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-lg font-semibold text-sm transition-all duration-200 disabled:from-surface disabled:to-surface disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-primary-500/25 hover:shadow-primary-500/35 hover:-translate-y-0.5 active:translate-y-0"
               >
                 {isStarting ? (
                   <><Loader2 className="w-4 h-4 animate-spin" /> 初始化中...</>
@@ -504,21 +504,21 @@ export default function BatchDashboard() {
 
           {/* 任务概览 */}
           {batchStatus && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+            <div className="bg-card rounded-xl border border-line shadow-sm overflow-hidden">
+              <div className="px-5 py-3.5 border-b border-line-subtle flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Activity className="w-4 h-4 text-primary-500" />
-                  <span className="text-sm font-semibold text-slate-700">任务概览</span>
+                  <span className="text-sm font-semibold text-fg-dim">任务概览</span>
                 </div>
-                <span className="text-[10px] font-mono text-slate-400">#{batchStatus.batch_id}</span>
+                <span className="text-[10px] font-mono text-fg-mute">#{batchStatus.batch_id}</span>
               </div>
               <div className="p-5 space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-slate-500">整体进度</span>
-                    <span className="text-sm font-mono font-semibold text-slate-700">{batchStatus.completed_runs}/{batchStatus.total_runs}</span>
+                    <span className="text-xs text-fg-mute">整体进度</span>
+                    <span className="text-sm font-mono font-semibold text-fg-dim">{batchStatus.completed_runs}/{batchStatus.total_runs}</span>
                   </div>
-                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-2 bg-surface rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-primary-400 to-primary-600 rounded-full transition-all duration-500"
                       style={{ width: `${overallProgress}%` }}
@@ -526,13 +526,13 @@ export default function BatchDashboard() {
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
-                    <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-0.5">关键词</div>
-                    <div className="text-sm text-slate-700 font-medium truncate">{batchStatus.keyword}</div>
+                  <div className="bg-surface rounded-lg p-3 border border-line-subtle">
+                    <div className="text-[10px] text-fg-mute uppercase tracking-wider mb-0.5">关键词</div>
+                    <div className="text-sm text-fg-dim font-medium truncate">{batchStatus.keyword}</div>
                   </div>
-                  <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
-                    <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-0.5">城市</div>
-                    <div className="text-sm text-slate-700 font-medium">{batchStatus.city}</div>
+                  <div className="bg-surface rounded-lg p-3 border border-line-subtle">
+                    <div className="text-[10px] text-fg-mute uppercase tracking-wider mb-0.5">城市</div>
+                    <div className="text-sm text-fg-dim font-medium">{batchStatus.city}</div>
                   </div>
                 </div>
               </div>
@@ -541,14 +541,14 @@ export default function BatchDashboard() {
         </div>
 
         {/* 右侧：状态面板 */}
-        <div className="col-span-8 space-y-4">
+        <div className="min-[900px]:col-span-8 space-y-4">
           {/* 实时状态 */}
           {batchStatus ? (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+            <div className="bg-card rounded-xl border border-line shadow-sm overflow-hidden">
+              <div className="px-5 py-3.5 border-b border-line-subtle flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${isRunning ? 'bg-green-500 animate-pulse' : 'bg-slate-300'}`} />
-                  <span className="text-sm font-semibold text-slate-700">实时状态</span>
+                  <div className={`w-2 h-2 rounded-full ${isRunning ? 'bg-green-500 animate-pulse' : 'bg-line'}`} />
+                  <span className="text-sm font-semibold text-fg-dim">实时状态</span>
                   <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${statusBadgeClass(batchStatus.status)}`}>
                     {statusLabel(batchStatus.status)}
                   </span>
@@ -574,43 +574,43 @@ export default function BatchDashboard() {
                         className={`relative rounded-xl border-2 transition-all duration-300 overflow-hidden ${
                           isActive
                             ? `${info.bg} ${info.border} shadow-md`
-                            : isDone ? 'bg-slate-50 border-slate-100' : 'bg-slate-50/50 border-slate-100 border-dashed'
+                            : isDone ? 'bg-surface border-line-subtle' : 'bg-surface/50 border-line-subtle border-dashed'
                         }`}
                       >
                         {/* 左侧色条 */}
-                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${isActive ? info.bar : isDone ? 'bg-slate-300' : 'bg-slate-200'}`} />
+                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${isActive ? info.bar : isDone ? 'bg-line' : 'bg-line'}`} />
 
                         <div className="p-4 pl-5">
                           {/* 头部 */}
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
                               <div className={`w-2.5 h-2.5 rounded-full ${info.dot} ${isActive ? 'animate-pulse' : ''}`} />
-                              <span className="text-sm font-bold text-slate-800">{info.label}</span>
-                              {isActive && <Loader2 className="w-3.5 h-3.5 text-slate-400 animate-spin" />}
+                              <span className="text-sm font-bold text-fg">{info.label}</span>
+                              {isActive && <Loader2 className="w-3.5 h-3.5 text-fg-mute animate-spin" />}
                               {isDone && p.status === 'completed' && <CheckCircle className="w-4 h-4 text-blue-500" />}
-                              {isDone && p.status !== 'completed' && <XCircle className="w-4 h-4 text-slate-400" />}
+                              {isDone && p.status !== 'completed' && <XCircle className="w-4 h-4 text-fg-mute" />}
                             </div>
                             {isActive && (
                               <div className="flex items-center gap-1">
                                 {p.is_paused ? (
                                   <button onClick={() => handlePlatformAction(p.platform, 'resume')}
-                                    className="px-2.5 py-1 text-[11px] font-medium bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors flex items-center gap-1">
+                                    className="px-2.5 py-1 text-[11px] font-medium bg-success/15 text-success rounded-md hover:bg-success/25 transition-colors flex items-center gap-1">
                                     <Play className="w-3 h-3" /> 继续
                                   </button>
                                 ) : (
                                   <button onClick={() => handlePlatformAction(p.platform, 'pause')}
-                                    className="px-2.5 py-1 text-[11px] font-medium bg-amber-100 text-amber-700 rounded-md hover:bg-amber-200 transition-colors flex items-center gap-1">
+                                    className="px-2.5 py-1 text-[11px] font-medium bg-warning/15 text-warning rounded-md hover:bg-warning/25 transition-colors flex items-center gap-1">
                                     <Pause className="w-3 h-3" /> 暂停
                                   </button>
                                 )}
                                 <button onClick={() => handlePlatformAction(p.platform, 'stop')}
-                                  className="px-2.5 py-1 text-[11px] font-medium bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition-colors flex items-center gap-1">
+                                  className="px-2.5 py-1 text-[11px] font-medium bg-error/15 text-error rounded-md hover:bg-error/25 transition-colors flex items-center gap-1">
                                   <Square className="w-3 h-3" /> 停止
                                 </button>
                               </div>
                             )}
                             {p.status === 'pending' && (
-                              <span className="text-[11px] text-slate-400 font-medium bg-white px-2 py-0.5 rounded border border-slate-200">排队中</span>
+                              <span className="text-[11px] text-fg-mute font-medium bg-surface px-2 py-0.5 rounded border border-line">排队中</span>
                             )}
                           </div>
 
@@ -622,32 +622,32 @@ export default function BatchDashboard() {
                                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: info.color }} />
                                   <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: info.color }} />
                                 </span>
-                                <span className="text-sm text-slate-700 font-medium">{p.current_action || '处理中...'}</span>
+                                <span className="text-sm text-fg-dim font-medium">{p.current_action || '处理中...'}</span>
                               </>
                             ) : isDone ? (
-                              <span className="text-sm text-slate-500">{statusLabel(p.status)}</span>
+                              <span className="text-sm text-fg-mute">{statusLabel(p.status)}</span>
                             ) : (
-                              <span className="text-sm text-slate-400 italic">等待执行...</span>
+                              <span className="text-sm text-fg-mute italic">等待执行...</span>
                             )}
                           </div>
 
                           {/* 当前职位信息 */}
                           {isActive && (p.current_company || p.current_job) && (
-                            <div className="bg-white/70 backdrop-blur rounded-lg p-3 mb-3 border border-white space-y-1.5">
+                            <div className="bg-white/5 backdrop-blur rounded-lg p-3 mb-3 border border-line space-y-1.5">
                               {p.current_job && (
                                 <div className="flex items-center gap-2 text-sm">
-                                  <Briefcase className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                  <span className="text-slate-700 font-medium truncate">{p.current_job}</span>
+                                  <Briefcase className="w-3.5 h-3.5 text-fg-mute shrink-0" />
+                                  <span className="text-fg-dim font-medium truncate">{p.current_job}</span>
                                 </div>
                               )}
                               {p.current_company && (
                                 <div className="flex items-center gap-2 text-sm">
-                                  <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                  <span className="text-slate-600 truncate">{p.current_company}</span>
+                                  <Building2 className="w-3.5 h-3.5 text-fg-mute shrink-0" />
+                                  <span className="text-fg-dim truncate">{p.current_company}</span>
                                 </div>
                               )}
                               {p.current_page > 0 && (
-                                <div className="flex items-center gap-2 text-xs font-mono text-slate-400 pt-1 border-t border-slate-100">
+                                <div className="flex items-center gap-2 text-xs font-mono text-fg-mute pt-1 border-t border-line-subtle">
                                   <Clock className="w-3 h-3" />
                                   第 {p.current_page} 页 · {p.current_index + 1}/{p.current_total || '?'}
                                 </div>
@@ -657,7 +657,7 @@ export default function BatchDashboard() {
 
                           {/* 进度条 */}
                           {isActive && p.current_total > 0 && (
-                            <div className="h-1.5 bg-white rounded-full overflow-hidden mb-3">
+                            <div className="h-1.5 bg-line rounded-full overflow-hidden mb-3">
                               <div className={`h-full ${info.bar} rounded-full transition-all duration-300`} style={{ width: `${progress}%` }} />
                             </div>
                           )}
@@ -665,23 +665,23 @@ export default function BatchDashboard() {
                           {/* 统计 */}
                           <div className="flex items-center gap-4 text-xs">
                             <div className="flex items-center gap-1">
-                              <span className="text-slate-400">总计</span>
-                              <span className="font-mono font-semibold text-slate-700">{p.total_count}</span>
+                              <span className="text-fg-mute">总计</span>
+                              <span className="font-mono font-semibold text-fg-dim">{p.total_count}</span>
                             </div>
                             <div className="flex items-center gap-1">
                               <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                              <span className="text-slate-400">成功</span>
+                              <span className="text-fg-mute">成功</span>
                               <span className="font-mono font-semibold text-green-600">{p.success_count}</span>
                             </div>
                             <div className="flex items-center gap-1">
                               <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                              <span className="text-slate-400">失败</span>
+                              <span className="text-fg-mute">失败</span>
                               <span className="font-mono font-semibold text-red-600">{p.failed_count}</span>
                             </div>
                             <div className="flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                              <span className="text-slate-400">跳过</span>
-                              <span className="font-mono font-semibold text-slate-500">{p.skipped_count}</span>
+                              <span className="w-1.5 h-1.5 rounded-full bg-line" />
+                              <span className="text-fg-mute">跳过</span>
+                              <span className="font-mono font-semibold text-fg-mute">{p.skipped_count}</span>
                             </div>
                           </div>
                         </div>
@@ -693,63 +693,63 @@ export default function BatchDashboard() {
             </div>
           ) : (
             /* 空状态 */
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col items-center justify-center py-20">
-              <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4 border border-slate-100">
-                <Layers className="w-8 h-8 text-slate-300" />
+            <div className="bg-card rounded-xl border border-line shadow-sm flex flex-col items-center justify-center py-20">
+              <div className="w-16 h-16 bg-surface rounded-2xl flex items-center justify-center mb-4 border border-line-subtle">
+                <Layers className="w-8 h-8 text-fg-mute" />
               </div>
-              <p className="text-sm text-slate-500 mb-1 font-medium">暂无运行中的批量任务</p>
-              <p className="text-xs text-slate-400">在左侧配置参数后点击「一键投递」启动</p>
+              <p className="text-sm text-fg-mute mb-1 font-medium">暂无运行中的批量任务</p>
+              <p className="text-xs text-fg-mute">在左侧配置参数后点击「一键投递」启动</p>
             </div>
           )}
 
           {/* 结果汇总 */}
           {batchResults && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-5 py-3.5 border-b border-slate-100 flex items-center gap-2">
+            <div className="bg-card rounded-xl border border-line shadow-sm overflow-hidden">
+              <div className="px-5 py-3.5 border-b border-line-subtle flex items-center gap-2">
                 <BarChart3 className="w-4 h-4 text-primary-500" />
-                <span className="text-sm font-semibold text-slate-700">投递结果汇总</span>
-                <span className="text-[10px] font-mono text-slate-400">#{batchResults.batch_id}</span>
+                <span className="text-sm font-semibold text-fg-dim">投递结果汇总</span>
+                <span className="text-[10px] font-mono text-fg-mute">#{batchResults.batch_id}</span>
               </div>
               <div className="p-5 space-y-4">
                 {/* 总体统计 */}
-                <div className="grid grid-cols-4 gap-3">
-                  <div className="bg-slate-50 rounded-lg p-3 border border-slate-100 text-center">
-                    <div className="text-2xl font-bold text-slate-800 font-mono">{batchResults.summary.total}</div>
-                    <div className="text-[11px] text-slate-400 mt-0.5">总计</div>
+                <div className="grid grid-cols-2 min-[900px]:grid-cols-4 gap-3">
+                  <div className="bg-surface rounded-lg p-3 border border-line-subtle text-center">
+                    <div className="text-2xl font-bold text-fg font-mono">{batchResults.summary.total}</div>
+                    <div className="text-[11px] text-fg-mute mt-0.5">总计</div>
                   </div>
-                  <div className="bg-green-50 rounded-lg p-3 border border-green-100 text-center">
-                    <div className="text-2xl font-bold text-green-600 font-mono">{batchResults.summary.success}</div>
-                    <div className="text-[11px] text-green-500 mt-0.5">成功</div>
+                  <div className="bg-success/10 rounded-lg p-3 border border-success/20 text-center">
+                    <div className="text-2xl font-bold text-success font-mono">{batchResults.summary.success}</div>
+                    <div className="text-[11px] text-success/70 mt-0.5">成功</div>
                   </div>
-                  <div className="bg-red-50 rounded-lg p-3 border border-red-100 text-center">
-                    <div className="text-2xl font-bold text-red-600 font-mono">{batchResults.summary.failed}</div>
-                    <div className="text-[11px] text-red-500 mt-0.5">失败</div>
+                  <div className="bg-error/10 rounded-lg p-3 border border-error/20 text-center">
+                    <div className="text-2xl font-bold text-error font-mono">{batchResults.summary.failed}</div>
+                    <div className="text-[11px] text-error/70 mt-0.5">失败</div>
                   </div>
-                  <div className="bg-slate-50 rounded-lg p-3 border border-slate-100 text-center">
-                    <div className="text-2xl font-bold text-slate-500 font-mono">{batchResults.summary.skipped}</div>
-                    <div className="text-[11px] text-slate-400 mt-0.5">跳过</div>
+                  <div className="bg-surface rounded-lg p-3 border border-line-subtle text-center">
+                    <div className="text-2xl font-bold text-fg-mute font-mono">{batchResults.summary.skipped}</div>
+                    <div className="text-[11px] text-fg-mute mt-0.5">跳过</div>
                   </div>
                 </div>
 
                 {/* 各平台统计 */}
                 {batchResults.platforms.length > 0 && (
                   <div>
-                    <div className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">各平台明细</div>
+                    <div className="text-xs font-medium text-fg-mute uppercase tracking-wider mb-2">各平台明细</div>
                     <div className="space-y-2">
                       {batchResults.platforms.map(ps => {
                         const info = getPlatformInfo(ps.platform)
                         const rate = ps.total > 0 ? Math.round((ps.success / ps.total) * 100) : 0
                         return (
-                          <div key={ps.platform} className="flex items-center gap-3 p-2.5 bg-slate-50 rounded-lg">
+                          <div key={ps.platform} className="flex items-center gap-3 p-2.5 bg-surface rounded-lg">
                             <div className={`w-2 h-2 rounded-full ${info.dot}`} />
-                            <span className="text-sm font-medium text-slate-700 w-20">{info.label}</span>
-                            <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                            <span className="text-sm font-medium text-fg-dim w-20">{info.label}</span>
+                            <div className="flex-1 h-1.5 bg-line rounded-full overflow-hidden">
                               <div className={`h-full ${info.bar} rounded-full`} style={{ width: `${rate}%` }} />
                             </div>
                             <div className="flex items-center gap-3 text-xs font-mono">
                               <span className="text-green-600">{ps.success}成功</span>
                               <span className="text-red-500">{ps.failed}失败</span>
-                              <span className="text-slate-400">{ps.skipped}跳过</span>
+                              <span className="text-fg-mute">{ps.skipped}跳过</span>
                             </div>
                           </div>
                         )
@@ -761,32 +761,32 @@ export default function BatchDashboard() {
                 {/* 最近投递明细 */}
                 {batchResults.recent_results.length > 0 && (
                   <div>
-                    <div className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">最近投递</div>
-                    <div className="max-h-60 overflow-y-auto border border-slate-100 rounded-lg">
+                    <div className="text-xs font-medium text-fg-mute uppercase tracking-wider mb-2">最近投递</div>
+                    <div className="max-h-60 overflow-y-auto border border-line-subtle rounded-lg">
                       <table className="w-full text-xs">
-                        <thead className="bg-slate-50 sticky top-0">
+                        <thead className="bg-surface sticky top-0">
                           <tr>
-                            <th className="text-left px-3 py-2 text-slate-400 font-medium">平台</th>
-                            <th className="text-left px-3 py-2 text-slate-400 font-medium">职位</th>
-                            <th className="text-left px-3 py-2 text-slate-400 font-medium">公司</th>
-                            <th className="text-left px-3 py-2 text-slate-400 font-medium">状态</th>
+                            <th className="text-left px-3 py-2 text-fg-mute font-medium">平台</th>
+                            <th className="text-left px-3 py-2 text-fg-mute font-medium">职位</th>
+                            <th className="text-left px-3 py-2 text-fg-mute font-medium">公司</th>
+                            <th className="text-left px-3 py-2 text-fg-mute font-medium">状态</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-50">
+                        <tbody className="divide-y divide-line-subtle">
                           {batchResults.recent_results.map(r => (
-                            <tr key={r.id} className="hover:bg-slate-50">
+                            <tr key={r.id} className="hover:bg-surface">
                               <td className="px-3 py-2">
                                 <span className={`inline-flex items-center gap-1 ${getPlatformInfo(r.platform).text}`}>
                                   <span className={`w-1.5 h-1.5 rounded-full ${getPlatformInfo(r.platform).dot}`} />
                                   {getPlatformInfo(r.platform).label}
                                 </span>
                               </td>
-                              <td className="px-3 py-2 text-slate-700 max-w-[200px] truncate">{r.job_title}</td>
-                              <td className="px-3 py-2 text-slate-500 max-w-[150px] truncate">{r.company}</td>
+                              <td className="px-3 py-2 text-fg-dim max-w-[200px] truncate">{r.job_title}</td>
+                              <td className="px-3 py-2 text-fg-mute max-w-[150px] truncate">{r.company}</td>
                               <td className="px-3 py-2">
                                 {r.status === 'success' && <span className="inline-flex items-center gap-1 text-green-600"><CheckCircle2 className="w-3 h-3" />成功</span>}
                                 {r.status === 'failed' && <span className="inline-flex items-center gap-1 text-red-600"><XCircle className="w-3 h-3" />失败</span>}
-                                {r.status === 'skipped' && <span className="inline-flex items-center gap-1 text-slate-400"><SkipForward className="w-3 h-3" />跳过</span>}
+                                {r.status === 'skipped' && <span className="inline-flex items-center gap-1 text-fg-mute"><SkipForward className="w-3 h-3" />跳过</span>}
                               </td>
                             </tr>
                           ))}
@@ -801,20 +801,20 @@ export default function BatchDashboard() {
 
           {/* 实时日志 */}
           {logs.length > 0 && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-5 py-3.5 border-b border-slate-100 flex items-center gap-2">
-                <Terminal className="w-4 h-4 text-slate-400" />
-                <span className="text-sm font-semibold text-slate-700">实时日志</span>
-                <span className="text-[10px] text-slate-400 font-mono">{logs.length}条</span>
+            <div className="bg-card rounded-xl border border-line shadow-sm overflow-hidden">
+              <div className="px-5 py-3.5 border-b border-line-subtle flex items-center gap-2">
+                <Terminal className="w-4 h-4 text-fg-mute" />
+                <span className="text-sm font-semibold text-fg-dim">实时日志</span>
+                <span className="text-[10px] text-fg-mute font-mono">{logs.length}条</span>
               </div>
               <div className="p-3 max-h-64 overflow-y-auto bg-slate-900 font-mono text-xs leading-relaxed">
                 {logs.map(log => (
                   <div key={log.id} className="flex gap-2 py-0.5">
-                    <span className="text-slate-600 shrink-0">{log.time}</span>
+                    <span className="text-fg-dim shrink-0">{log.time}</span>
                     <span className={`shrink-0 font-semibold ${
                       log.platform === 'batch' ? 'text-cyan-400' : getPlatformInfo(log.platform).text.replace('text-', 'text-').replace('700', '400')
                     }`}>[{log.platform === 'batch' ? 'BATCH' : getPlatformInfo(log.platform).label}]</span>
-                    <span className={logLevelClass(log.level).replace('text-slate-500', 'text-slate-300').replace('text-green-600', 'text-green-400').replace('text-red-600', 'text-red-400').replace('text-amber-600', 'text-amber-400').replace('text-slate-400', 'text-slate-500')}>
+                    <span className={logLevelClass(log.level).replace('text-fg-mute', 'text-fg-mute').replace('text-green-600', 'text-green-400').replace('text-red-600', 'text-red-400').replace('text-amber-600', 'text-amber-400').replace('text-fg-mute', 'text-fg-mute')}>
                       {log.message}
                     </span>
                   </div>
@@ -825,41 +825,41 @@ export default function BatchDashboard() {
           )}
 
           {/* 历史记录 */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+          <div className="bg-card rounded-xl border border-line shadow-sm overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-line-subtle flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-slate-400" />
-                <span className="text-sm font-semibold text-slate-700">任务历史</span>
+                <Clock className="w-4 h-4 text-fg-mute" />
+                <span className="text-sm font-semibold text-fg-dim">任务历史</span>
               </div>
-              <button onClick={loadHistory} className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 transition-colors">
+              <button onClick={loadHistory} className="flex items-center gap-1 text-xs text-fg-mute hover:text-fg-dim transition-colors">
                 <RefreshCw className="w-3.5 h-3.5" /> 刷新
               </button>
             </div>
-            <div className="divide-y divide-slate-50">
+            <div className="divide-y divide-line-subtle">
               {history.length === 0 ? (
-                <div className="p-10 text-center text-slate-400 text-sm">暂无历史记录</div>
+                <div className="p-10 text-center text-fg-mute text-sm">暂无历史记录</div>
               ) : (
                 history.map(h => (
                   <div
                     key={h.id}
                     onClick={() => viewHistoryBatch(h.id)}
-                    className="flex items-center justify-between px-5 py-3 hover:bg-slate-50 cursor-pointer transition-colors group"
+                    className="flex items-center justify-between px-5 py-3 hover:bg-surface cursor-pointer transition-colors group"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-xs font-mono text-slate-400 w-8">#{h.id}</span>
-                      <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-primary-500 transition-colors" />
-                      <span className="text-sm text-slate-700 font-medium">{h.keyword}</span>
-                      <span className="text-xs text-slate-400 flex items-center gap-1">
+                      <span className="text-xs font-mono text-fg-mute w-8">#{h.id}</span>
+                      <ChevronRight className="w-3.5 h-3.5 text-fg-mute group-hover:text-primary-500 transition-colors" />
+                      <span className="text-sm text-fg-dim font-medium">{h.keyword}</span>
+                      <span className="text-xs text-fg-mute flex items-center gap-1">
                         <MapPin className="w-3 h-3" />{h.city}
                       </span>
-                      <span className="text-xs text-slate-400 font-mono bg-slate-100 px-1.5 py-0.5 rounded">{h.platforms}</span>
+                      <span className="text-xs text-fg-mute font-mono bg-surface px-1.5 py-0.5 rounded">{h.platforms}</span>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="text-xs font-mono text-slate-400">{h.completed_runs}/{h.total_runs}</span>
+                      <span className="text-xs font-mono text-fg-mute">{h.completed_runs}/{h.total_runs}</span>
                       <span className={`text-[11px] px-2 py-0.5 rounded-full border font-medium ${statusBadgeClass(h.status)}`}>
                         {statusLabel(h.status)}
                       </span>
-                      <span className="text-[11px] text-slate-400 font-mono">
+                      <span className="text-[11px] text-fg-mute font-mono">
                         {h.started_at ? new Date(h.started_at).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-'}
                       </span>
                     </div>

@@ -219,10 +219,10 @@ export default function Schedules() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col min-[900px]:flex-row min-[900px]:items-center min-[900px]:justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">定时任务</h2>
-          <p className="text-sm text-slate-500 mt-1">设置每天固定时间自动投递，无人值守运行</p>
+          <h2 className="text-xl font-bold text-fg">定时任务</h2>
+          <p className="text-sm text-fg-mute mt-1">设置每天固定时间自动投递，无人值守运行</p>
         </div>
         <button
           onClick={openCreate}
@@ -236,35 +236,35 @@ export default function Schedules() {
       {/* 任务列表 */}
       <div className="space-y-3">
         {loading ? (
-          <div className="text-center py-12 text-slate-400">加载中...</div>
+          <div className="text-center py-12 text-fg-mute">加载中...</div>
         ) : schedules.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-lg border border-slate-200">
-            <Clock className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500">暂无定时任务</p>
-            <p className="text-xs text-slate-400 mt-1">点击上方按钮创建第一个定时任务</p>
+          <div className="text-center py-16 bg-card rounded-lg border border-line">
+            <Clock className="w-12 h-12 text-fg-mute mx-auto mb-3" />
+            <p className="text-fg-mute">暂无定时任务</p>
+            <p className="text-xs text-fg-mute mt-1">点击上方按钮创建第一个定时任务</p>
           </div>
         ) : (
           schedules.map(sched => (
-            <div key={sched.id} className="bg-white rounded-lg border border-slate-200 p-4">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <h3 className="font-medium text-slate-800">{sched.name}</h3>
+            <div key={sched.id} className="bg-card rounded-lg border border-line p-4">
+              <div className="flex flex-col min-[900px]:flex-row min-[900px]:items-start min-[900px]:justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-medium text-fg">{sched.name}</h3>
                     <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                      sched.platform === 'boss' ? 'bg-green-100 text-green-700' :
-                      sched.platform === 'job51' ? 'bg-blue-100 text-blue-700' :
-                      sched.platform === 'zhilian' ? 'bg-orange-100 text-orange-700' :
-                      'bg-purple-100 text-purple-700'
+                      sched.platform === 'boss' ? 'bg-success/10 text-success' :
+                      sched.platform === 'job51' ? 'bg-primary/10 text-primary-300' :
+                      sched.platform === 'zhilian' ? 'bg-warning/10 text-warning' :
+                      'bg-violet-500/10 text-violet-300'
                     }`}>
                       {getPlatformLabel(sched.platform)}
                     </span>
                     <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                      sched.enabled ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'
+                      sched.enabled ? 'bg-success/10 text-success' : 'bg-surface text-fg-mute'
                     }`}>
                       {sched.enabled ? '已启用' : '已禁用'}
                     </span>
                   </div>
-                  <div className="mt-2 flex items-center gap-4 text-sm text-slate-500">
+                  <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-fg-mute">
                     <span className="flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5" />
                       {sched.run_time}
@@ -276,16 +276,16 @@ export default function Schedules() {
                     <span>关键词: {sched.config.keyword || '-'}</span>
                     <span>城市: {sched.config.city || '-'}</span>
                   </div>
-                  <div className="mt-1 text-xs text-slate-400">
+                  <div className="mt-1 text-xs text-fg-mute">
                     {sched.next_run_at && `下次执行: ${new Date(sched.next_run_at).toLocaleString('zh-CN')}`}
                     {sched.last_run_at && ` | 上次执行: ${new Date(sched.last_run_at).toLocaleString('zh-CN')}`}
                     {sched.last_run_status && ` (${sched.last_run_status})`}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
                   <button
                     onClick={() => handleRunNow(sched.id)}
-                    className="p-2 text-slate-500 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                    className="p-2 text-fg-mute hover:text-primary-400 hover:bg-primary/10 rounded transition-colors"
                     title="立即执行"
                   >
                     <Play className="w-4 h-4" />
@@ -294,8 +294,8 @@ export default function Schedules() {
                     onClick={() => handleToggle(sched.id, !sched.enabled)}
                     className={`p-2 rounded transition-colors ${
                       sched.enabled
-                        ? 'text-amber-600 hover:bg-amber-50'
-                        : 'text-emerald-600 hover:bg-emerald-50'
+                        ? 'text-warning hover:bg-warning/10'
+                        : 'text-success hover:bg-success/10'
                     }`}
                     title={sched.enabled ? '禁用' : '启用'}
                   >
@@ -303,14 +303,14 @@ export default function Schedules() {
                   </button>
                   <button
                     onClick={() => openEdit(sched)}
-                    className="p-2 text-slate-500 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                    className="p-2 text-fg-mute hover:text-primary-400 hover:bg-primary/10 rounded transition-colors"
                     title="编辑"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(sched.id)}
-                    className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                    className="p-2 text-fg-mute hover:text-error hover:bg-error/10 rounded transition-colors"
                     title="删除"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -325,35 +325,35 @@ export default function Schedules() {
       {/* 创建/编辑弹窗 */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-4 border-b border-slate-200">
-              <h3 className="font-semibold text-slate-800">
+          <div className="bg-card rounded-lg border border-line w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b border-line">
+              <h3 className="font-semibold text-fg">
                 {editingId ? '编辑定时任务' : '新建定时任务'}
               </h3>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setShowModal(false)} className="text-fg-mute hover:text-fg-dim">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="p-4 space-y-4">
               {/* 基本信息 */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">任务名称</label>
+                <label className="block text-sm font-medium text-fg-dim mb-1">任务名称</label>
                 <input
                   type="text"
                   value={form.name}
                   onChange={e => setForm({ ...form, name: e.target.value })}
                   placeholder="如：工作日早9点Boss投递"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 py-2 border border-line rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 min-[900px]:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">平台</label>
+                  <label className="block text-sm font-medium text-fg-dim mb-1">平台</label>
                   <select
                     value={form.platform}
                     onChange={e => setForm({ ...form, platform: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-3 py-2 border border-line rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                   >
                     {PLATFORMS.map(p => (
                       <option key={p.value} value={p.value}>{p.label}</option>
@@ -361,19 +361,19 @@ export default function Schedules() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">执行时间</label>
+                  <label className="block text-sm font-medium text-fg-dim mb-1">执行时间</label>
                   <input
                     type="time"
                     value={form.run_time}
                     onChange={e => setForm({ ...form, run_time: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-3 py-2 border border-line rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
                 </div>
               </div>
 
               {/* 星期选择 */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">执行日期</label>
+                <label className="block text-sm font-medium text-fg-dim mb-2">执行日期</label>
                 <div className="flex gap-2">
                   {WEEKDAYS.map(day => (
                     <button
@@ -382,7 +382,7 @@ export default function Schedules() {
                       className={`w-9 h-9 rounded-md text-sm font-medium transition-colors ${
                         form.days.includes(day.value)
                           ? 'bg-primary-600 text-white'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          : 'bg-surface text-fg-dim hover:bg-surface-hover'
                       }`}
                     >
                       {day.label}
@@ -412,59 +412,59 @@ export default function Schedules() {
               </div>
 
               {/* 投递配置 */}
-              <div className="pt-3 border-t border-slate-100">
-                <p className="text-sm font-medium text-slate-700 mb-3">投递配置</p>
+              <div className="pt-3 border-t border-line-subtle">
+                <p className="text-sm font-medium text-fg-dim mb-3">投递配置</p>
                 <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 min-[900px]:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs text-slate-500 mb-1">关键词</label>
+                      <label className="block text-xs text-fg-mute mb-1">关键词</label>
                       <input
                         type="text"
                         value={form.keyword}
                         onChange={e => setForm({ ...form, keyword: e.target.value })}
-                        className="w-full px-3 py-1.5 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="w-full px-3 py-1.5 border border-line rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-slate-500 mb-1">城市</label>
+                      <label className="block text-xs text-fg-mute mb-1">城市</label>
                       <input
                         type="text"
                         value={form.city}
                         onChange={e => setForm({ ...form, city: e.target.value })}
-                        className="w-full px-3 py-1.5 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="w-full px-3 py-1.5 border border-line rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 min-[900px]:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs text-slate-500 mb-1">薪资范围</label>
+                      <label className="block text-xs text-fg-mute mb-1">薪资范围</label>
                       <input
                         type="text"
                         value={form.salary}
                         onChange={e => setForm({ ...form, salary: e.target.value })}
                         placeholder="如 10-20K"
-                        className="w-full px-3 py-1.5 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="w-full px-3 py-1.5 border border-line rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-slate-500 mb-1">最大页数</label>
+                      <label className="block text-xs text-fg-mute mb-1">最大页数</label>
                       <input
                         type="number"
                         value={form.max_pages}
                         onChange={e => setForm({ ...form, max_pages: Number(e.target.value) })}
                         min={1}
                         max={50}
-                        className="w-full px-3 py-1.5 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="w-full px-3 py-1.5 border border-line rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-500 mb-1">打招呼语</label>
+                    <label className="block text-xs text-fg-mute mb-1">打招呼语</label>
                     <textarea
                       value={form.say_hi}
                       onChange={e => setForm({ ...form, say_hi: e.target.value })}
                       rows={2}
-                      className="w-full px-3 py-1.5 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-3 py-1.5 border border-line rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                     />
                   </div>
                   <div className="flex items-center gap-4">
@@ -475,7 +475,7 @@ export default function Schedules() {
                         onChange={e => setForm({ ...form, use_ai: e.target.checked })}
                         className="rounded"
                       />
-                      <span className="text-sm text-slate-600">AI智能打招呼</span>
+                      <span className="text-sm text-fg-dim">AI智能打招呼</span>
                     </label>
                     {form.platform === 'boss' && (
                       <label className="flex items-center gap-2 cursor-pointer">
@@ -485,20 +485,20 @@ export default function Schedules() {
                           onChange={e => setForm({ ...form, filter_inactive_hr: e.target.checked })}
                           className="rounded"
                         />
-                        <span className="text-sm text-slate-600">过滤不活跃HR</span>
+                        <span className="text-sm text-fg-dim">过滤不活跃HR</span>
                       </label>
                     )}
                   </div>
 
                   {/* Boss高级过滤 */}
                   {form.platform === 'boss' && (
-                    <div className="grid grid-cols-2 gap-2 pt-2">
+                    <div className="grid grid-cols-1 min-[900px]:grid-cols-2 gap-2 pt-2">
                       <div>
-                        <label className="block text-xs text-slate-500 mb-1">工作经验</label>
+                        <label className="block text-xs text-fg-mute mb-1">工作经验</label>
                         <select
                           value={form.experience}
                           onChange={e => setForm({ ...form, experience: e.target.value })}
-                          className="w-full px-3 py-1.5 text-sm border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          className="w-full px-3 py-1.5 text-sm border border-line rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                         >
                           <option value="">不限</option>
                           <option value="101">应届毕业生</option>
@@ -510,11 +510,11 @@ export default function Schedules() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs text-slate-500 mb-1">学历要求</label>
+                        <label className="block text-xs text-fg-mute mb-1">学历要求</label>
                         <select
                           value={form.degree}
                           onChange={e => setForm({ ...form, degree: e.target.value })}
-                          className="w-full px-3 py-1.5 text-sm border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          className="w-full px-3 py-1.5 text-sm border border-line rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                         >
                           <option value="">不限</option>
                           <option value="204">大专</option>
@@ -534,18 +534,18 @@ export default function Schedules() {
                       onChange={e => setForm({ ...form, enable_company_check: e.target.checked })}
                       className="rounded"
                     />
-                    <span className="text-sm text-slate-600">启用公司背调（自动跳过风险公司）</span>
+                    <span className="text-sm text-fg-dim">启用公司背调（自动跳过风险公司）</span>
                   </div>
                 </div>
               </div>
 
               {/* 启用开关 */}
-              <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                <span className="text-sm text-slate-700">创建后立即启用</span>
+              <div className="flex items-center justify-between pt-3 border-t border-line-subtle">
+                <span className="text-sm text-fg-dim">创建后立即启用</span>
                 <button
                   onClick={() => setForm({ ...form, enabled: !form.enabled })}
                   className={`relative w-11 h-6 rounded-full transition-colors ${
-                    form.enabled ? 'bg-primary-600' : 'bg-slate-300'
+                    form.enabled ? 'bg-primary-600' : 'bg-line'
                   }`}
                 >
                   <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
@@ -554,10 +554,10 @@ export default function Schedules() {
                 </button>
               </div>
             </div>
-            <div className="flex justify-end gap-2 p-4 border-t border-slate-200">
+            <div className="flex justify-end gap-2 p-4 border-t border-line">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
+                className="px-4 py-2 text-sm text-fg-dim hover:bg-surface rounded-md transition-colors"
               >
                 取消
               </button>

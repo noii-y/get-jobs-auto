@@ -183,7 +183,7 @@ export default function Dashboard() {
     switch (type) {
       case 'success': return <CheckCircle className="w-3.5 h-3.5 text-green-500 flex-shrink-0 mt-0.5" />
       case 'error': return <XCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
-      case 'warning': return <AlertCircle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" />
+      case 'warning': return <AlertCircle className="w-3.5 h-3.5 text-warning flex-shrink-0 mt-0.5" />
       default: return <span className="w-3.5 h-3.5 flex-shrink-0" />
     }
   }
@@ -193,20 +193,20 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-slate-800">投递控制台</h2>
-        <p className="text-sm text-slate-500 mt-1">配置投递参数，启动自动化投递任务</p>
+        <h2 className="text-xl font-bold text-fg">投递控制台</h2>
+        <p className="text-sm text-fg-mute mt-1">配置投递参数，启动自动化投递任务</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 min-[900px]:grid-cols-3 gap-6">
         {/* 左侧：配置表单 */}
-        <div className="lg:col-span-1 space-y-4">
-          <div className="bg-white rounded-lg border border-slate-200 p-5">
-            <h3 className="text-sm font-semibold text-slate-700 mb-4">投递配置</h3>
+        <div className="min-[900px]:col-span-1 space-y-4">
+          <div className="bg-card rounded-lg border border-line p-5">
+            <h3 className="text-sm font-semibold text-fg-dim mb-4">投递配置</h3>
 
             <div className="space-y-4">
               {/* 平台选择（多选） */}
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1.5">投递平台（可多选）</label>
+                <label className="block text-xs font-medium text-fg-dim mb-1.5">投递平台（可多选）</label>
                 <div className="flex gap-2">
                   {PLATFORMS.map(p => (
                     <button
@@ -224,7 +224,7 @@ export default function Dashboard() {
                       className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                         selectedPlatforms.includes(p.value)
                           ? 'bg-primary-600 text-white'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          : 'bg-surface text-fg-dim hover:bg-surface-hover'
                       } disabled:opacity-50`}
                     >
                       {p.label}
@@ -235,25 +235,25 @@ export default function Dashboard() {
 
               {/* 关键词 */}
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1.5">搜索关键词 *</label>
+                <label className="block text-xs font-medium text-fg-dim mb-1.5">搜索关键词 *</label>
                 <input
                   type="text"
                   value={keyword}
                   onChange={e => setKeyword(e.target.value)}
                   disabled={isRunning}
                   placeholder="如：Python开发、前端工程师"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-slate-50"
+                  className="w-full px-3 py-2 border border-line rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-60"
                 />
               </div>
 
               {/* 城市 */}
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1.5">城市</label>
+                <label className="block text-xs font-medium text-fg-dim mb-1.5">城市</label>
                 <select
                   value={city}
                   onChange={e => setCity(e.target.value)}
                   disabled={isRunning}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-slate-50"
+                  className="w-full px-3 py-2 border border-line rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-60"
                 >
                   {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
@@ -261,20 +261,20 @@ export default function Dashboard() {
 
               {/* 薪资 */}
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1.5">薪资范围（可选）</label>
+                <label className="block text-xs font-medium text-fg-dim mb-1.5">薪资范围（可选）</label>
                 <input
                   type="text"
                   value={salary}
                   onChange={e => setSalary(e.target.value)}
                   disabled={isRunning}
                   placeholder="如：10-15K（Boss直聘）"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-slate-50"
+                  className="w-full px-3 py-2 border border-line rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-60"
                 />
               </div>
 
               {/* 最大页数 */}
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1.5">最大投递页数: {maxPages}</label>
+                <label className="block text-xs font-medium text-fg-dim mb-1.5">最大投递页数: {maxPages}</label>
                 <input
                   type="range"
                   min="1"
@@ -284,32 +284,32 @@ export default function Dashboard() {
                   disabled={isRunning}
                   className="w-full accent-primary-600"
                 />
-                <p className="text-xs text-slate-400 mt-1">每页约15-20个职位</p>
+                <p className="text-xs text-fg-mute mt-1">每页约15-20个职位</p>
               </div>
 
               {/* 打招呼语 */}
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1.5">默认打招呼语</label>
+                <label className="block text-xs font-medium text-fg-dim mb-1.5">默认打招呼语</label>
                 <textarea
                   value={greeting}
                   onChange={e => setGreeting(e.target.value)}
                   disabled={isRunning}
                   rows={3}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none disabled:bg-slate-50"
+                  className="w-full px-3 py-2 border border-line rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none disabled:opacity-60"
                 />
               </div>
 
               {/* AI开关 */}
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-700">AI智能打招呼</p>
-                  <p className="text-xs text-slate-400">根据JD生成个性化问候</p>
+                  <p className="text-sm font-medium text-fg-dim">AI智能打招呼</p>
+                  <p className="text-xs text-fg-mute">根据JD生成个性化问候</p>
                 </div>
                 <button
                   onClick={() => setUseAI(!useAI)}
                   disabled={isRunning}
                   className={`relative w-11 h-6 rounded-full transition-colors ${
-                    useAI ? 'bg-primary-600' : 'bg-slate-300'
+                    useAI ? 'bg-primary-600' : 'bg-line'
                   } disabled:opacity-50`}
                 >
                   <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
@@ -323,14 +323,14 @@ export default function Dashboard() {
                 <>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-slate-700">过滤不活跃HR</p>
-                      <p className="text-xs text-slate-400">只投递近期活跃的招聘者</p>
+                      <p className="text-sm font-medium text-fg-dim">过滤不活跃HR</p>
+                      <p className="text-xs text-fg-mute">只投递近期活跃的招聘者</p>
                     </div>
                     <button
                       onClick={() => setFilterInactiveHR(!filterInactiveHR)}
                       disabled={isRunning}
                       className={`relative w-11 h-6 rounded-full transition-colors ${
-                        filterInactiveHR ? 'bg-primary-600' : 'bg-slate-300'
+                        filterInactiveHR ? 'bg-primary-600' : 'bg-line'
                       } disabled:opacity-50`}
                     >
                       <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
@@ -340,12 +340,12 @@ export default function Dashboard() {
                   </div>
                   {filterInactiveHR && (
                     <div>
-                      <label className="text-xs text-slate-500">活跃天数阈值</label>
+                      <label className="text-xs text-fg-mute">活跃天数阈值</label>
                       <select
                         value={hrActiveDays}
                         onChange={(e) => setHrActiveDays(Number(e.target.value))}
                         disabled={isRunning}
-                        className="mt-1 w-full px-3 py-1.5 text-sm border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="mt-1 w-full px-3 py-1.5 text-sm border border-line rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                       >
                         <option value={1}>1天内</option>
                         <option value={3}>3天内</option>
@@ -358,12 +358,12 @@ export default function Dashboard() {
                   {/* 高级过滤：经验和学历 */}
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-xs text-slate-500">工作经验</label>
+                      <label className="text-xs text-fg-mute">工作经验</label>
                       <select
                         value={experience}
                         onChange={(e) => setExperience(e.target.value)}
                         disabled={isRunning}
-                        className="mt-1 w-full px-3 py-1.5 text-sm border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="mt-1 w-full px-3 py-1.5 text-sm border border-line rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                       >
                         <option value="">不限</option>
                         <option value="101">应届毕业生</option>
@@ -375,12 +375,12 @@ export default function Dashboard() {
                       </select>
                     </div>
                     <div>
-                      <label className="text-xs text-slate-500">学历要求</label>
+                      <label className="text-xs text-fg-mute">学历要求</label>
                       <select
                         value={degree}
                         onChange={(e) => setDegree(e.target.value)}
                         disabled={isRunning}
-                        className="mt-1 w-full px-3 py-1.5 text-sm border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="mt-1 w-full px-3 py-1.5 text-sm border border-line rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                       >
                         <option value="">不限</option>
                         <option value="204">大专</option>
@@ -394,16 +394,16 @@ export default function Dashboard() {
               )}
 
               {/* 公司背调开关（所有平台通用） */}
-              <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-between pt-3 border-t border-line-subtle">
                 <div>
-                  <p className="text-sm font-medium text-slate-700">公司背调</p>
-                  <p className="text-xs text-slate-400">自动检测高风险公司并跳过</p>
+                  <p className="text-sm font-medium text-fg-dim">公司背调</p>
+                  <p className="text-xs text-fg-mute">自动检测高风险公司并跳过</p>
                 </div>
                 <button
                   onClick={() => setEnableCompanyCheck(!enableCompanyCheck)}
                   disabled={isRunning}
                   className={`relative w-11 h-6 rounded-full transition-colors ${
-                    enableCompanyCheck ? 'bg-primary-600' : 'bg-slate-300'
+                    enableCompanyCheck ? 'bg-primary-600' : 'bg-line'
                   } disabled:opacity-50`}
                 >
                   <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
@@ -414,7 +414,7 @@ export default function Dashboard() {
             </div>
 
             {/* 启动/停止按钮 */}
-            <div className="mt-5 pt-4 border-t border-slate-100">
+            <div className="mt-5 pt-4 border-t border-line-subtle">
               {!isRunning ? (
                 <button
                   onClick={handleStart}
@@ -436,9 +436,9 @@ export default function Dashboard() {
           </div>
 
           {/* 注意事项 */}
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <h4 className="text-sm font-medium text-amber-800 mb-2">使用前请注意</h4>
-            <ul className="text-xs text-amber-700 space-y-1 list-disc list-inside">
+          <div className="bg-warning/10 border border-warning/30 rounded-lg p-4">
+            <h4 className="text-sm font-medium text-warning mb-2">使用前请注意</h4>
+            <ul className="text-xs text-fg-dim space-y-1 list-disc list-inside">
               <li>请先在Chrome浏览器中登录对应招聘平台</li>
               <li>Chrome需以调试模式启动（端口9222）</li>
               <li>建议控制投递频率，避免账号被限制</li>
@@ -448,23 +448,23 @@ export default function Dashboard() {
         </div>
 
         {/* 右侧：实时日志和统计 */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="min-[900px]:col-span-2 space-y-4">
           {/* 统计卡片 */}
-          <div className="grid grid-cols-4 gap-3">
-            <StatCard label="总计" value={stats.total} icon={<Loader2 className="w-4 h-4" />} color="text-slate-600" bg="bg-slate-100" />
-            <StatCard label="成功" value={stats.success} icon={<CheckCircle className="w-4 h-4" />} color="text-green-600" bg="bg-green-100" />
-            <StatCard label="失败" value={stats.failed} icon={<XCircle className="w-4 h-4" />} color="text-red-600" bg="bg-red-100" />
-            <StatCard label="跳过" value={stats.skipped} icon={<SkipForward className="w-4 h-4" />} color="text-amber-600" bg="bg-amber-100" />
+          <div className="grid grid-cols-2 min-[900px]:grid-cols-4 gap-3">
+            <StatCard label="总计" value={stats.total} icon={<Loader2 className="w-4 h-4" />} color="text-fg-mute" bg="bg-surface" />
+            <StatCard label="成功" value={stats.success} icon={<CheckCircle className="w-4 h-4" />} color="text-success" bg="bg-success/15" />
+            <StatCard label="失败" value={stats.failed} icon={<XCircle className="w-4 h-4" />} color="text-error" bg="bg-error/15" />
+            <StatCard label="跳过" value={stats.skipped} icon={<SkipForward className="w-4 h-4" />} color="text-warning" bg="bg-warning/15" />
           </div>
 
           {/* 进度条 */}
           {isRunning && (
-            <div className="bg-white rounded-lg border border-slate-200 p-4">
+            <div className="bg-card rounded-lg border border-line p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-700">投递进度</span>
-                <span className="text-sm text-slate-500">{progress.current} / {progress.total || '?'}</span>
+                <span className="text-sm font-medium text-fg-dim">投递进度</span>
+                <span className="text-sm text-fg-mute">{progress.current} / {progress.total || '?'}</span>
               </div>
-              <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div className="w-full h-2 bg-surface rounded-full overflow-hidden">
                 <div
                   className="h-full bg-primary-600 rounded-full transition-all duration-300"
                   style={{ width: `${progressPercent}%` }}
@@ -474,9 +474,9 @@ export default function Dashboard() {
           )}
 
           {/* 实时日志 */}
-          <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-slate-700">实时日志</h3>
+          <div className="bg-card rounded-lg border border-line overflow-hidden">
+            <div className="px-4 py-3 border-b border-line-subtle flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-fg-dim">实时日志</h3>
               {isRunning && (
                 <span className="flex items-center gap-1.5 text-xs text-green-600">
                   <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
@@ -489,17 +489,17 @@ export default function Dashboard() {
               className="h-96 overflow-y-auto p-4 bg-slate-900 log-container"
             >
               {logs.length === 0 ? (
-                <p className="text-slate-500 text-center py-8">暂无日志，点击"开始投递"启动任务</p>
+                <p className="text-fg-mute text-center py-8">暂无日志，点击"开始投递"启动任务</p>
               ) : (
                 logs.map(log => (
                   <div key={log.id} className="flex gap-2 py-0.5">
-                    <span className="text-slate-500 flex-shrink-0">[{log.timestamp}]</span>
+                    <span className="text-fg-mute flex-shrink-0">[{log.timestamp}]</span>
                     {getLogIcon(log.type)}
                     <span className={`${
                       log.type === 'success' ? 'text-green-400' :
                       log.type === 'error' ? 'text-red-400' :
                       log.type === 'warning' ? 'text-amber-400' :
-                      'text-slate-300'
+                      'text-fg-dim'
                     }`}>
                       {log.message}
                     </span>
@@ -522,12 +522,12 @@ function StatCard({ label, value, icon, color, bg }: {
   bg: string
 }) {
   return (
-    <div className="bg-white rounded-lg border border-slate-200 p-4">
+    <div className="bg-card rounded-lg border border-line p-4">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs text-slate-500">{label}</span>
+        <span className="text-xs text-fg-mute">{label}</span>
         <span className={`${color} ${bg} p-1 rounded`}>{icon}</span>
       </div>
-      <p className="text-2xl font-bold text-slate-800">{value}</p>
+      <p className="text-2xl font-bold text-fg">{value}</p>
     </div>
   )
 }
